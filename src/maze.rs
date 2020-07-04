@@ -212,8 +212,8 @@ impl Drawable for Maze {
         for x in 0..self.dim.0 {
             for y in 0..self.dim.1 {
                 let param2 = param.clone().dest(Point2::new(
-                    param.dest.x + x as f32 * 32.,
-                    param.dest.y + y as f32 * 32.,
+                    param.dest.x + x as f32 * 32. * param.scale.x,
+                    param.dest.y + y as f32 * 32. * param.scale.y,
                 ));
 
                 // debug
