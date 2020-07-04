@@ -4,6 +4,7 @@ use ggez;
 use ggez::event;
 use ggez::graphics;
 use ggez::nalgebra as na;
+use crate::maze::{Maze, Tile};
 
 struct MainState {
     pos_x: f32,
@@ -25,15 +26,9 @@ impl event::EventHandler for MainState {
     fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        let circle = graphics::Mesh::new_circle(
-            ctx,
-            graphics::DrawMode::fill(),
-            na::Point2::new(self.pos_x, 380.0),
-            100.0,
-            2.0,
-            graphics::WHITE,
-        )?;
-        graphics::draw(ctx, &circle, (na::Point2::new(0.0, 0.0),))?;
+        let mut maze = Maze::new(10, 10);
+        maze.set_tile(5, 7, Tile::Wall);
+        graphics::draw(ctx, &maze, (na::Point2::new(100.0, 100.0),))?;
 
         graphics::present(ctx)?;
         Ok(())
