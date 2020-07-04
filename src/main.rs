@@ -14,7 +14,7 @@ struct MainState {
 
 impl MainState {
     fn new() -> GameResult<MainState> {
-        let mut maze = Maze::new((11, 11));
+        let mut maze = Maze::new((21, 21));
         maze.generate(&mut rand::thread_rng());
 
         let s = MainState { maze };

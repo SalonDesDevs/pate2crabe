@@ -56,7 +56,7 @@ impl Maze {
     }
 
     pub fn generate<R: Rng>(&mut self, rng: &mut R) {
-        // start at 0,0
+        // start at (0, 0)
         self.backtrack_gen([0, 0].into(), rng)
     }
 
@@ -65,6 +65,11 @@ impl Maze {
 
         // mark as visited
         self.set(curr, Tile::Ground);
+
+        if curr == [self.dim.0 - 1, self.dim.1 - 1].into() {
+            // end at (self.dim.0 - 1, self.dim.1 - 1)
+            return;
+        }
 
         let mut directions = DIRECTIONS;
         directions.shuffle(rng);
