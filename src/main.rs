@@ -42,8 +42,8 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
-        graphics::draw(ctx, &self.maze, (na::Point2::new(100.0, 100.0),))?;
-        graphics::draw(ctx, &self.player, (na::Point2::new(100.0, 100.0),))?;
+        graphics::draw(ctx, &self.maze, (na::Point2::new(0.0, 0.0),))?;
+        graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0),))?;
 
         graphics::present(ctx)?;
         Ok(())

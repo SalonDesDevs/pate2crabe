@@ -11,7 +11,7 @@ pub struct Player {
 impl Player {
     pub fn new(assets: &Assets) -> Player {
         Player {
-            pos: (0.0, 0.0), // start
+            pos: (1.0, 1.0), // start
             sprite: assets.idle_1.clone(),
         }
     }
@@ -28,8 +28,8 @@ impl Drawable for Player {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         self.sprite.draw(ctx, param.clone().dest(
             na::Point2::new(
-                param.dest.x + self.pos.0 * 16.0,
-                param.dest.y + self.pos.1 * 16.0
+                param.dest.x + self.pos.0 * 32.0,
+                param.dest.y + self.pos.1 * 32.0
             )
         ))
     }

@@ -67,7 +67,7 @@ impl Maze {
 
     pub fn generate<R: Rng>(&mut self, rng: &mut R, assets: &Assets) {
         // start at (0, 0)
-        self.backtrack_gen([0, 0].into(), rng);
+        self.backtrack_gen([1, 1].into(), rng);
         self.set_textures(assets);
     }
 
@@ -77,7 +77,7 @@ impl Maze {
         // mark as visited
         self.set(curr, Tile::Ground);
 
-        if curr == [self.dim.0 - 1, self.dim.1 - 1].into() {
+        if curr == [self.dim.0 - 2, self.dim.1 - 2].into() {
             // end at (self.dim.0 - 1, self.dim.1 - 1)
             return;
         }
@@ -95,7 +95,10 @@ impl Maze {
             let between: CellIndex = [between_.x as usize, between_.y as usize].into();
 
             // if neighbour is not visited
-            if self.is_in_range(index) && self.get(index).is_wall() {
+            if (1..self.dim.0 - 1).contains(&index.x)
+                && (1..self.dim.1 - 1).contains(&index.y)
+                && self.get(index).is_wall()
+            {
                 self.set(between, Tile::Ground);
                 self.backtrack_gen(index, rng);
             }
@@ -128,19 +131,19 @@ impl Maze {
                 let texture = match (
                     matches!(
                         self.get_tile_rel(index, Direction::North),
-                        Some(Tile::Wall(_)) | None
+                        Some(Tile::Wall(_))
                     ),
                     matches!(
                         self.get_tile_rel(index, Direction::East),
-                        Some(Tile::Wall(_)) | None
+                        Some(Tile::Wall(_))
                     ),
                     matches!(
                         self.get_tile_rel(index, Direction::South),
-                        Some(Tile::Wall(_)) | None
+                        Some(Tile::Wall(_))
                     ),
                     matches!(
                         self.get_tile_rel(index, Direction::West),
-                        Some(Tile::Wall(_)) | None
+                        Some(Tile::Wall(_))
                     ),
                 ) {
                     (true, true, false, false) => Some(assets.wall_corn_top_lft.clone()),
