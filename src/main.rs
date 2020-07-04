@@ -49,7 +49,7 @@ impl EventHandler for MainState {
 fn main() -> GameResult {
     let (ctx, event_loop) = &mut ContextBuilder::new("pate2crabe", "team_pate2crabe")
         .window_setup(WindowSetup {
-            title: "pate2crab".to_owned(),
+            title: "pate2crabe".to_owned(),
             samples: NumSamples::Zero,
             vsync: true,
             icon: "".to_owned(),
