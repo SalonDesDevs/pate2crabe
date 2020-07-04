@@ -5,7 +5,7 @@ use std::{env, path};
 
 use rand;
 
-use ggez::conf::{NumSamples, WindowSetup};
+use ggez::conf::{NumSamples, WindowSetup, WindowMode, FullscreenType};
 use ggez::event::{self, EventHandler};
 use ggez::graphics::{self, Text, DrawParam};
 use ggez::input::keyboard::{KeyCode, KeyMods};
@@ -154,6 +154,18 @@ fn main() -> GameResult {
             vsync: true,
             icon: "".to_owned(),
             srgb: true,
+        })
+        .window_mode(WindowMode {
+            width: 800.0,
+            height: 675.0,
+            maximized: false,
+            fullscreen_type: FullscreenType::Windowed,
+            borderless: false,
+            min_width: 0.0,
+            max_width: 0.0,
+            min_height: 0.0,
+            max_height: 0.0,
+            resizable: false,
         })
         .add_resource_path(resource_dir)
         .build()?;
