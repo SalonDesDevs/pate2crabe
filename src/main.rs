@@ -9,6 +9,7 @@ use ggez::event::{self, EventHandler};
 use ggez::graphics::{self, Image};
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::nalgebra as na;
+use std::{path, env};
 use rand;
 
 struct MainState {
@@ -23,11 +24,9 @@ impl MainState {
 
         Ok(MainState {
             maze,
-            player: Player::new(Image::from_rgba8(
-                ctx,
-                32, 32,
-                &[255; 32 * 32 * 4]
-            )?),
+            player: Player::new(
+                Image::new(ctx, "/idle_1.png")
+            ),
         })
     }
 }
@@ -73,6 +72,14 @@ impl EventHandler for MainState {
 }
 
 fn main() -> GameResult {
+    let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        let mut path = path::PathBuf::from(manifest_dir);
+        path.push("assets");
+        path
+    } else {
+        path::PathBuf::from("./assets")
+    };
+
     let (ctx, event_loop) = &mut ContextBuilder::new("pate2crabe", "team_pate2crabe")
         .window_setup(WindowSetup {
             title: "pate2crabe".to_owned(),
@@ -81,7 +88,8 @@ fn main() -> GameResult {
             icon: "".to_owned(),
             srgb: true,
         })
+        .add_resource_path(resource_dir)
         .build()?;
-    let state = &mut MainState::new(ctx)?;
+    let state = &mut MainState::new(ctx, resource_dir)?;
     event::run(ctx, event_loop, state)
 }
