@@ -3,7 +3,7 @@ use ggez::graphics::{self, Drawable, DrawParam, Rect, BlendMode, Image};
 use ggez::nalgebra as na;
 
 pub struct Player {
-    pos: (f32, f32),
+    pub pos: (f32, f32),
     sprite: Image,
 }
 
@@ -27,8 +27,8 @@ impl Drawable for Player {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         self.sprite.draw(ctx, param.clone().dest(
             na::Point2::new(
-                param.dest.x + self.pos.0,
-                param.dest.y + self.pos.1
+                param.dest.x + self.pos.0 * 16.0,
+                param.dest.y + self.pos.1 * 16.0
             )
         ))
     }

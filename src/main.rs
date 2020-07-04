@@ -25,8 +25,8 @@ impl MainState {
             maze,
             player: Player::new(Image::from_rgba8(
                 ctx,
-                32, 32,
-                &[255; 32 * 32 * 4]
+                16, 16,
+                &[125; 16 * 16 * 4]
             )?),
         })
     }
@@ -41,7 +41,7 @@ impl EventHandler for MainState {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
         self.maze.set([5, 7].into(), Tile::Wall);
         graphics::draw(ctx, &self.maze, (na::Point2::new(100.0, 100.0),))?;
-        graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0),))?;
+        graphics::draw(ctx, &self.player, (na::Point2::new(100.0, 100.0),))?;
 
         graphics::present(ctx)?;
         Ok(())
@@ -54,18 +54,21 @@ impl EventHandler for MainState {
         _keymods: KeyMods,
         _repeat: bool
     ) {
+        let (fx, fy) = self.player.pos;
+        let (x, y) = (fx as usize, fy as usize);
+
         match keycode {
-            KeyCode::Up => {
-                self.player.translate((0.0, -5.0));
+            KeyCode::Up => if y != 0 && self.maze.get([x, y - 1].into()) == Tile::Ground {
+                self.player.translate((0.0, -1.0));
             },
-            KeyCode::Down => {
-                self.player.translate((0.0, 5.0));
+            KeyCode::Down => if y != 20 && self.maze.get([x, y + 1].into()) == Tile::Ground {
+                self.player.translate((0.0, 1.0));
             },
-            KeyCode::Left => {
-                self.player.translate((-5.0, 0.0));
+            KeyCode::Left => if x != 0 && self.maze.get([x - 1, y].into()) == Tile::Ground {
+                self.player.translate((-1.0, 0.0));
             },
-            KeyCode::Right => {
-                self.player.translate((5.0, 0.0));
+            KeyCode::Right => if x != 20 && self.maze.get([x + 1, y].into()) == Tile::Ground {
+                self.player.translate((1.0, 0.0));
             },
             _ => ()
         }
