@@ -2,7 +2,7 @@ mod maze;
 mod player;
 
 use crate::maze::{Maze, Tile};
-use crate::player::Player;
+use crate::player::{Player, PlayerState, Animation};
 use ggez::{GameResult, Context, ContextBuilder};
 use ggez::conf::{WindowSetup, NumSamples};
 use ggez::event::{self, EventHandler};
@@ -10,6 +10,7 @@ use ggez::graphics::{self, Image};
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::nalgebra as na;
 use std::{path, env};
+use std::collections::HashMap;
 use rand;
 
 struct MainState {
@@ -24,9 +25,7 @@ impl MainState {
 
         Ok(MainState {
             maze,
-            player: Player::new(
-                Image::new(ctx, "/idle_1.png")
-            ),
+            player: Player::new(HashMap::new()),
         })
     }
 }
@@ -90,6 +89,6 @@ fn main() -> GameResult {
         })
         .add_resource_path(resource_dir)
         .build()?;
-    let state = &mut MainState::new(ctx, resource_dir)?;
+    let state = &mut MainState::new(ctx)?;
     event::run(ctx, event_loop, state)
 }
