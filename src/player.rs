@@ -46,7 +46,7 @@ pub enum PlayerState {
 }
 
 pub struct Player {
-    pos: (f32, f32),
+    pub pos: (f32, f32),
     animations: HashMap<PlayerState, Animation>,
     state: PlayerState,
 }
@@ -54,7 +54,7 @@ pub struct Player {
 impl Player {
     pub fn new(animations: HashMap<PlayerState, Animation>) -> Player {
         Player {
-            pub pos: (1.0, 1.0), // start
+            pos: (1.0, 1.0), // start
             animations,
             state: PlayerState::Idle,
         }

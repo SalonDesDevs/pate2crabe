@@ -14,10 +14,6 @@ use ggez::nalgebra as na;
 use std::{path, env};
 use std::collections::HashMap;
 use rand;
-use std::{
-    env,
-    path::{self, PathBuf},
-};
 
 struct MainState {
     maze: Maze,
