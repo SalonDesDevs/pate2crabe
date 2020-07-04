@@ -1,6 +1,7 @@
 use ggez::{self, GameResult, Context};
 use ggez::graphics::{self, Drawable, DrawParam, Rect, BlendMode, Image};
 use ggez::nalgebra as na;
+use crate::assets::Assets;
 
 pub struct Player {
     pub pos: (f32, f32),
@@ -8,10 +9,10 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(sprite: Image) -> Player {
+    pub fn new(assets: &Assets) -> Player {
         Player {
             pos: (0.0, 0.0), // start
-            sprite,
+            sprite: assets.idle_1.clone(),
         }
     }
 

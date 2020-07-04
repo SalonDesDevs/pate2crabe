@@ -1,16 +1,21 @@
+mod assets;
 mod maze;
 mod player;
 
+use crate::assets::load_assets;
 use crate::maze::{Maze, Tile};
 use crate::player::Player;
-use ggez::{GameResult, Context, ContextBuilder};
-use ggez::conf::{WindowSetup, NumSamples};
+use ggez::conf::{NumSamples, WindowSetup};
 use ggez::event::{self, EventHandler};
 use ggez::graphics::{self, Image};
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::nalgebra as na;
-use std::{path, env};
+use ggez::{Context, ContextBuilder, GameResult};
 use rand;
+use std::{
+    env,
+    path::{self, PathBuf},
+};
 
 struct MainState {
     maze: Maze,
@@ -19,14 +24,13 @@ struct MainState {
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let mut maze = Maze::new((21, 21));
-        maze.generate(&mut rand::thread_rng());
+        let assets = load_assets(ctx)?;
+        let mut maze = Maze::new((21, 21), &assets);
+        maze.generate(&mut rand::thread_rng(), &assets);
 
         Ok(MainState {
             maze,
-            player: Player::new(
-                Image::new(ctx, "/idle_1.png")
-            ),
+            player: Player::new(&assets),
         })
     }
 }
@@ -38,7 +42,6 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
-        self.maze.set([5, 7].into(), Tile::Wall);
         graphics::draw(ctx, &self.maze, (na::Point2::new(100.0, 100.0),))?;
         graphics::draw(ctx, &self.player, (na::Point2::new(100.0, 100.0),))?;
 
@@ -51,22 +54,22 @@ impl EventHandler for MainState {
         ctx: &mut Context,
         keycode: KeyCode,
         _keymods: KeyMods,
-        _repeat: bool
+        _repeat: bool,
     ) {
         let (fx, fy) = self.player.pos;
         let (x, y) = (fx as usize, fy as usize);
 
         match keycode {
-            KeyCode::Up => if y != 0 && self.maze.get([x, y - 1].into()) == Tile::Ground {
+            KeyCode::Up => if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
                 self.player.translate((0.0, -1.0));
             },
-            KeyCode::Down => if y != 20 && self.maze.get([x, y + 1].into()) == Tile::Ground {
+            KeyCode::Down => if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
                 self.player.translate((0.0, 1.0));
             },
-            KeyCode::Left => if x != 0 && self.maze.get([x - 1, y].into()) == Tile::Ground {
+            KeyCode::Left => if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
                 self.player.translate((-1.0, 0.0));
             },
-            KeyCode::Right => if x != 20 && self.maze.get([x + 1, y].into()) == Tile::Ground {
+            KeyCode::Right => if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
                 self.player.translate((1.0, 0.0));
             },
             _ => ()
@@ -93,6 +96,6 @@ fn main() -> GameResult {
         })
         .add_resource_path(resource_dir)
         .build()?;
-    let state = &mut MainState::new(ctx, resource_dir)?;
+    let state = &mut MainState::new(ctx)?;
     event::run(ctx, event_loop, state)
 }
