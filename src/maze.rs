@@ -121,42 +121,46 @@ impl Maze {
             for x in 0..self.dim.0 {
                 let index = CellIndex::from([x, y]);
 
+                if !self.get(index).is_wall() {
+                    continue;
+                }
+
                 let texture = match (
                     matches!(
                         self.get_tile_rel(index, Direction::North),
-                        Some(Tile::Wall(_))
+                        Some(Tile::Wall(_)) | None
                     ),
                     matches!(
                         self.get_tile_rel(index, Direction::East),
-                        Some(Tile::Wall(_))
+                        Some(Tile::Wall(_)) | None
                     ),
                     matches!(
                         self.get_tile_rel(index, Direction::South),
-                        Some(Tile::Wall(_))
+                        Some(Tile::Wall(_)) | None
                     ),
                     matches!(
                         self.get_tile_rel(index, Direction::West),
-                        Some(Tile::Wall(_))
+                        Some(Tile::Wall(_)) | None
                     ),
                 ) {
-                    (true, true, false, false) => Some(assets.wall_corn_bot_lft.clone()),
-                    (true, false, false, true) => Some(assets.wall_corn_bot_rgt.clone()),
-                    (false, true, true, false) => Some(assets.wall_corn_top_lft.clone()),
-                    (false, false, true, true) => Some(assets.wall_corn_top_rgt.clone()),
+                    (true, true, false, false) => Some(assets.wall_corn_top_lft.clone()),
+                    (true, false, false, true) => Some(assets.wall_corn_top_rgt.clone()),
+                    (false, true, true, false) => Some(assets.wall_corn_bot_lft.clone()),
+                    (false, false, true, true) => Some(assets.wall_corn_bot_rgt.clone()),
 
                     (true, true, true, true) => Some(assets.wall_crss_all.clone()),
-                    (true, true, false, true) => Some(assets.wall_crss_hori_bot.clone()),
-                    (false, true, true, true) => Some(assets.wall_crss_hori_top.clone()),
+                    (true, true, false, true) => Some(assets.wall_crss_hori_top.clone()),
+                    (false, true, true, true) => Some(assets.wall_crss_hori_bot.clone()),
                     (true, true, true, false) => Some(assets.wall_crss_vert_lft.clone()),
                     (true, false, true, true) => Some(assets.wall_crss_vert_rgt.clone()),
 
-                    (false, false, false, true) => Some(assets.wall_hori_lft.clone()),
+                    (false, false, false, true) => Some(assets.wall_hori_rgt.clone()),
                     (false, true, false, true) => Some(assets.wall_hori_mid.clone()),
-                    (false, true, false, false) => Some(assets.wall_hori_rgt.clone()),
+                    (false, true, false, false) => Some(assets.wall_hori_lft.clone()),
 
-                    (true, false, false, false) => Some(assets.wall_vert_bot.clone()),
+                    (true, false, false, false) => Some(assets.wall_vert_top.clone()),
                     (true, false, true, false) => Some(assets.wall_vert_mid.clone()),
-                    (false, false, true, false) => Some(assets.wall_vert_top.clone()),
+                    (false, false, true, false) => Some(assets.wall_vert_bot.clone()),
 
                     (false, false, false, false) => None,
                 };
@@ -206,9 +210,19 @@ impl Drawable for Maze {
         for x in 0..self.dim.0 {
             for y in 0..self.dim.1 {
                 let param2 = param.clone().dest(Point2::new(
-                    param.dest.x + x as f32 * 16.,
-                    param.dest.y + y as f32 * 16.,
+                    param.dest.x + x as f32 * 32.,
+                    param.dest.y + y as f32 * 32.,
                 ));
+
+                // debug
+                // graphics::Mesh::new_rectangle(
+                //     ctx,
+                //     graphics::DrawMode::stroke(1.0),
+                //     Rect::new(0., 0., 32., 32.),
+                //     graphics::WHITE,
+                // )?
+                // .draw(ctx, param2)?;
+
                 self.grass_asset.draw(ctx, param2)?;
                 self.get([x, y].into()).draw(ctx, param2)?;
             }
@@ -220,8 +234,8 @@ impl Drawable for Maze {
         Option::from(Rect::new(
             0.,
             0.,
-            self.dim.0 as f32 * 16.,
-            self.dim.1 as f32 * 16.,
+            self.dim.0 as f32 * 32.,
+            self.dim.1 as f32 * 32.,
         ))
     }
 
