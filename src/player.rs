@@ -54,7 +54,7 @@ pub struct Player {
 impl Player {
     pub fn new(animations: HashMap<PlayerState, Animation>) -> Player {
         Player {
-            pos: (0.0, 0.0), // start
+            pub pos: (1.0, 1.0), // start
             animations,
             state: PlayerState::Idle,
         }
@@ -74,8 +74,8 @@ impl Drawable for Player {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         self.animations[&self.state].draw(ctx, param.clone().dest(
             na::Point2::new(
-                param.dest.x + self.pos.0,
-                param.dest.y + self.pos.1
+                param.dest.x + self.pos.0 * 32.0,
+                param.dest.y + self.pos.1 * 32.0
             )
         ))
     }
