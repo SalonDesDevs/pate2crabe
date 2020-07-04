@@ -1,8 +1,14 @@
 [package]
+authors = [
+  "Shika-Blyat",
+  "TrAyZeN",
+  "Adamaq01 <adamthibert01@gmail.com>",
+  "Adrien Navratil <adrien1975@live.fr>",
+  "Charles Chudant <cchudant@student.42.fr>",
+]
+edition = "2018"
 name = "pate2crabe"
 version = "0.1.0"
-authors = ["Julien Castiaux <julien.castiaux@gmail.com>"]
-edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
