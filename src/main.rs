@@ -1,15 +1,16 @@
 use std::{env, path};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::time::Instant;
+
+use rand;
 
 use ggez::{Context, ContextBuilder, GameResult, graphics};
 use ggez::conf::{NumSamples, WindowSetup};
 use ggez::event::{self, EventHandler};
-use ggez::graphics::{self, Image, Text};
+use ggez::graphics::{Text, DrawParam};
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::nalgebra as na;
-use rand;
-use std::time::Instant;
 
 use crate::assets::{Assets, load_assets};
 use crate::maze::Maze;
@@ -53,8 +54,8 @@ impl MainState {
 }
 
 impl EventHandler for MainState {
-    fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let diff = (Instant::now() - self.start).as_secs();
+    fn update(&mut self, _ctx: &mut Context) -> GameResult {
+        let diff = 10i32 - (Instant::now() - self.start).as_secs() as i32;
         if diff > 0 {
             self.info = Text::new(format!("{:02}", diff));
         } else {
@@ -70,7 +71,7 @@ impl EventHandler for MainState {
         graphics::draw(ctx, &self.maze, (na::Point2::new(0.0, 0.0),))?;
         graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0),))?;
 
-        graphics::draw(ctx, &self.info, (na::Point2::new(500.0, 50.0),))?;
+        graphics::draw(ctx, &self.info, DrawParam::new().dest(na::Point2::new(725.0, 50.0)).scale(na::Vector2::new(2.0, 2.0)))?;
 
         graphics::present(ctx)?;
 
@@ -79,7 +80,7 @@ impl EventHandler for MainState {
 
     fn key_down_event(
         &mut self,
-        ctx: &mut Context,
+        _ctx: &mut Context,
         keycode: KeyCode,
         _keymods: KeyMods,
         _repeat: bool,

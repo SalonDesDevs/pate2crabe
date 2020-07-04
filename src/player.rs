@@ -13,7 +13,7 @@ pub struct Animation {
 }
 
 impl Animation {
-    pub fn new(ctx: &mut Context, assets: &Assets, sprite_paths: &[&str], delay: usize) -> Animation {
+    pub fn new(_ctx: &mut Context, assets: &Assets, sprite_paths: &[&str], delay: usize) -> Animation {
         Animation {
             frames: sprite_paths.iter().map(|p| assets[*p].clone()).collect(),
             index: 0,
