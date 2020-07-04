@@ -1,24 +1,33 @@
 mod maze;
+mod player;
 
 use crate::maze::{Maze, Tile};
+use crate::player::Player;
 use ggez::{GameResult, Context, ContextBuilder};
 use ggez::conf::{WindowSetup, NumSamples};
 use ggez::event::{self, EventHandler};
-use ggez::graphics;
+use ggez::graphics::{self, Image};
 use ggez::nalgebra as na;
 use rand;
 
 struct MainState {
     maze: Maze,
+    player: Player,
 }
 
 impl MainState {
-    fn new() -> GameResult<MainState> {
+    fn new(ctx: &mut Context) -> GameResult<MainState> {
         let mut maze = Maze::new((21, 21));
         maze.generate(&mut rand::thread_rng());
 
-        let s = MainState { maze };
-        Ok(s)
+        Ok(MainState {
+            maze,
+            player: Player::new(Image::from_rgba8(
+                ctx,
+                32, 32,
+                &[0; 32 * 32 * 4]
+            )?),
+        })
     }
 }
 
@@ -47,6 +56,6 @@ fn main() -> GameResult {
             srgb: true,
         })
         .build()?;
-    let state = &mut MainState::new()?;
+    let state = &mut MainState::new(ctx)?;
     event::run(ctx, event_loop, state)
 }
