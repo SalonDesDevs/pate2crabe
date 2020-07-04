@@ -1,7 +1,10 @@
-use ggez::{self, GameResult, Context};
-use ggez::graphics::{self, Drawable, DrawParam, Rect, BlendMode, Image};
-use ggez::nalgebra as na;
 use std::collections::HashMap;
+
+use ggez::{self, Context, GameResult};
+use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
+use ggez::nalgebra as na;
+
+use crate::assets::Assets;
 
 pub struct Animation {
     frames: Vec<Image>,
@@ -10,9 +13,9 @@ pub struct Animation {
 }
 
 impl Animation {
-    pub fn new(ctx: &mut Context, sprite_paths: &[&str], delay: usize) -> Animation {
+    pub fn new(ctx: &mut Context, assets: &Assets, sprite_paths: &[&str], delay: usize) -> Animation {
         Animation {
-            frames: sprite_paths.iter().map(|p| Image::new(ctx, p).unwrap()).collect(),
+            frames: sprite_paths.iter().map(|p| assets[*p].clone()).collect(),
             index: 0,
             delay,
         }
@@ -75,7 +78,7 @@ impl Drawable for Player {
         self.animations[&self.state].draw(ctx, param.clone().dest(
             na::Point2::new(
                 param.dest.x + self.pos.0 * 32.0,
-                param.dest.y + self.pos.1 * 32.0
+                param.dest.y + self.pos.1 * 32.0,
             )
         ))
     }

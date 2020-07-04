@@ -1,34 +1,45 @@
+use std::{env, path};
+use std::collections::HashMap;
+use std::path::PathBuf;
+
+use ggez::{Context, ContextBuilder, GameResult, graphics};
+use ggez::conf::{NumSamples, WindowSetup};
+use ggez::event::{self, EventHandler};
+use ggez::input::keyboard::{KeyCode, KeyMods};
+use ggez::nalgebra as na;
+use rand;
+
+use crate::assets::{Assets, load_assets};
+use crate::maze::Maze;
+use crate::player::{Animation, Player, PlayerState};
+
+mod tile;
 mod assets;
 mod maze;
 mod player;
 
-use crate::assets::load_assets;
-use crate::maze::{Maze, Tile};
-use crate::player::{Player, PlayerState, Animation};
-use ggez::{GameResult, Context, ContextBuilder};
-use ggez::conf::{WindowSetup, NumSamples};
-use ggez::event::{self, EventHandler};
-use ggez::graphics::{self, Image};
-use ggez::input::keyboard::{KeyCode, KeyMods};
-use ggez::nalgebra as na;
-use std::{path, env};
-use std::collections::HashMap;
-use rand;
-
 struct MainState {
     maze: Maze,
     player: Player,
+    assets: Assets,
 }
 
 impl MainState {
-    fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let assets = load_assets(ctx)?;
+    fn new(ctx: &mut Context, path: PathBuf) -> GameResult<MainState> {
+        let assets = load_assets(ctx, &path)?;
         let mut maze = Maze::new((21, 21), &assets);
         maze.generate(&mut rand::thread_rng(), &assets);
 
+        let mut player_animations = HashMap::new();
+        player_animations.insert(PlayerState::Idle, Animation::new(ctx, &assets, &["/game/idle_1.png", "/game/idle_2.png", "/game/idle_3.png", "/game/idle_4.png"], 50));
+        player_animations.insert(PlayerState::Run, Animation::new(ctx, &assets, &["/game/idle_1.png"], 50));
+        player_animations.insert(PlayerState::Hurt, Animation::new(ctx, &assets, &["/game/idle_1.png"], 50));
+        player_animations.insert(PlayerState::Dead, Animation::new(ctx, &assets, &["/game/idle_1.png"], 50));
+
         Ok(MainState {
             maze,
-            player: Player::new(HashMap::new()),
+            player: Player::new(player_animations),
+            assets,
         })
     }
 }
@@ -40,8 +51,8 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
-        graphics::draw(ctx, &self.maze, (na::Point2::new(0.0, 0.0),))?;
-        graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0),))?;
+        graphics::draw(ctx, &self.maze, (na::Point2::new(0.0, 0.0), ))?;
+        graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0), ))?;
 
         graphics::present(ctx)?;
         Ok(())
@@ -83,6 +94,7 @@ fn main() -> GameResult {
     } else {
         path::PathBuf::from("./assets")
     };
+    let path = resource_dir.clone();
 
     let (ctx, event_loop) = &mut ContextBuilder::new("pate2crabe", "team_pate2crabe")
         .window_setup(WindowSetup {
@@ -94,6 +106,6 @@ fn main() -> GameResult {
         })
         .add_resource_path(resource_dir)
         .build()?;
-    let state = &mut MainState::new(ctx)?;
+    let state = &mut MainState::new(ctx, path)?;
     event::run(ctx, event_loop, state)
 }
