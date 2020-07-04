@@ -177,8 +177,19 @@ impl Maze {
 
 impl Drawable for Tile {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
+        const WALL_SCALING: f32 = 1.3;
+
         if let Tile::Wall(Some(img)) = self {
-            img.draw(ctx, param)?;
+            img.draw(
+                ctx,
+                param
+                    .clone()
+                    .scale([param.scale.x * WALL_SCALING, param.scale.y * WALL_SCALING])
+                    .dest([
+                        param.dest.x - (32. * WALL_SCALING - 32.) * param.scale.x / 2.,
+                        param.dest.y - (32. * WALL_SCALING - 32.) * param.scale.y / 2.,
+                    ]),
+            )?;
         }
         Ok(())
     }
