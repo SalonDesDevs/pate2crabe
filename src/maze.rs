@@ -1,25 +1,13 @@
-use ggez::graphics::{BlendMode, Color, DrawParam, Drawable, Image, Rect};
+use ggez::{Context, GameResult};
+use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
 use ggez::nalgebra as na;
-use ggez::{graphics, Context, GameResult};
 use na::{Point2, Vector2};
 use rand::prelude::*;
 
 use crate::assets::Assets;
+use crate::tile::Tile;
 
 pub type CellIndex = Point2<usize>;
-pub type Point = Point2<f64>;
-
-#[derive(Debug, Clone)]
-pub enum Tile {
-    Wall(Option<Image>),
-    Ground,
-}
-
-impl Tile {
-    pub fn is_wall(&self) -> bool {
-        matches!(self, Tile::Wall(_))
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct Maze {
@@ -45,7 +33,7 @@ impl Direction {
             Self::South => [0, -1],
             Self::West => [-1, 0],
         }
-        .into()
+            .into()
     }
 }
 
@@ -61,7 +49,7 @@ impl Maze {
         Maze {
             dim: (w, h),
             tiles: vec![Tile::Wall(None); w * h],
-            grass_asset: assets.grass.clone(),
+            grass_asset: assets["/game/grass.png"].clone(),
         }
     }
 
@@ -146,24 +134,24 @@ impl Maze {
                         Some(Tile::Wall(_))
                     ),
                 ) {
-                    (true, true, false, false) => Some(assets.wall_corn_top_lft.clone()),
-                    (true, false, false, true) => Some(assets.wall_corn_top_rgt.clone()),
-                    (false, true, true, false) => Some(assets.wall_corn_bot_lft.clone()),
-                    (false, false, true, true) => Some(assets.wall_corn_bot_rgt.clone()),
+                    (true, true, false, false) => Some(assets["/game/wall_corn_top_lft.png"].clone()),
+                    (true, false, false, true) => Some(assets["/game/wall_corn_top_rgt.png"].clone()),
+                    (false, true, true, false) => Some(assets["/game/wall_corn_bot_lft.png"].clone()),
+                    (false, false, true, true) => Some(assets["/game/wall_corn_bot_rgt.png"].clone()),
 
-                    (true, true, true, true) => Some(assets.wall_crss_all.clone()),
-                    (true, true, false, true) => Some(assets.wall_crss_hori_top.clone()),
-                    (false, true, true, true) => Some(assets.wall_crss_hori_bot.clone()),
-                    (true, true, true, false) => Some(assets.wall_crss_vert_lft.clone()),
-                    (true, false, true, true) => Some(assets.wall_crss_vert_rgt.clone()),
+                    (true, true, true, true) => Some(assets["/game/wall_crss_all.png"].clone()),
+                    (true, true, false, true) => Some(assets["/game/wall_crss_hori_top.png"].clone()),
+                    (false, true, true, true) => Some(assets["/game/wall_crss_hori_bot.png"].clone()),
+                    (true, true, true, false) => Some(assets["/game/wall_crss_vert_lft.png"].clone()),
+                    (true, false, true, true) => Some(assets["/game/wall_crss_vert_rgt.png"].clone()),
 
-                    (false, false, false, true) => Some(assets.wall_hori_rgt.clone()),
-                    (false, true, false, true) => Some(assets.wall_hori_mid.clone()),
-                    (false, true, false, false) => Some(assets.wall_hori_lft.clone()),
+                    (false, false, false, true) => Some(assets["/game/wall_hori_rgt.png"].clone()),
+                    (false, true, false, true) => Some(assets["/game/wall_hori_mid.png"].clone()),
+                    (false, true, false, false) => Some(assets["/game/wall_hori_lft.png"].clone()),
 
-                    (true, false, false, false) => Some(assets.wall_vert_top.clone()),
-                    (true, false, true, false) => Some(assets.wall_vert_mid.clone()),
-                    (false, false, true, false) => Some(assets.wall_vert_bot.clone()),
+                    (true, false, false, false) => Some(assets["/game/wall_vert_top.png"].clone()),
+                    (true, false, true, false) => Some(assets["/game/wall_vert_mid.png"].clone()),
+                    (false, false, true, false) => Some(assets["/game/wall_vert_bot.png"].clone()),
 
                     (false, false, false, false) => None,
                 };

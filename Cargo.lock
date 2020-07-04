@@ -1395,6 +1395,7 @@ name = "pate2crabe"
 version = "0.1.0"
 dependencies = [
  "ggez",
+ "glob 0.3.0",
  "rand 0.7.3",
  "tiled",
 ]
