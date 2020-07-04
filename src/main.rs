@@ -1,34 +1,36 @@
 mod maze;
 
+use crate::maze::{Maze, Tile};
 use ggez;
 use ggez::event;
 use ggez::graphics;
 use ggez::nalgebra as na;
-use crate::maze::{Maze, Tile};
+use rand;
 
 struct MainState {
-    pos_x: f32,
+    maze: Maze,
 }
 
 impl MainState {
     fn new() -> ggez::GameResult<MainState> {
-        let s = MainState { pos_x: 0.0 };
+        let mut maze = Maze::new((11, 11));
+        maze.generate(&mut rand::thread_rng());
+
+        let s = MainState { maze };
         Ok(s)
     }
 }
 
 impl event::EventHandler for MainState {
     fn update(&mut self, _ctx: &mut ggez::Context) -> ggez::GameResult {
-        self.pos_x = self.pos_x % 800.0 + 1.0;
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        let mut maze = Maze::new(10, 10);
-        maze.set_tile(5, 7, Tile::Wall);
-        graphics::draw(ctx, &maze, (na::Point2::new(100.0, 100.0),))?;
+        self.maze.set([5, 7].into(), Tile::Wall);
+        graphics::draw(ctx, &self.maze, (na::Point2::new(100.0, 100.0),))?;
 
         graphics::present(ctx)?;
         Ok(())
