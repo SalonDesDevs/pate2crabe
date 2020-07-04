@@ -1,5 +1,6 @@
 use ggez::{self, GameResult, Context};
-use ggez::graphics::{Drawable, DrawParam, Rect, BlendMode, Image};
+use ggez::graphics::{self, Drawable, DrawParam, Rect, BlendMode, Image};
+use ggez::nalgebra as na;
 
 pub struct Player {
     pos: (f32, f32),
@@ -13,11 +14,23 @@ impl Player {
             sprite,
         }
     }
+
+    pub fn translate(&mut self, vec: (f32, f32)) {
+        self.pos = (
+            self.pos.0 + vec.0,
+            self.pos.1 + vec.1
+        );
+    }
 }
 
 impl Drawable for Player {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
-        self.sprite.draw(ctx, param)
+        self.sprite.draw(ctx, param.clone().dest(
+            na::Point2::new(
+                param.dest.x + self.pos.0,
+                param.dest.y + self.pos.1
+            )
+        ))
     }
 
     fn dimensions(&self, _ctx: &mut Context) -> Option<Rect> {

@@ -7,6 +7,7 @@ use ggez::{GameResult, Context, ContextBuilder};
 use ggez::conf::{WindowSetup, NumSamples};
 use ggez::event::{self, EventHandler};
 use ggez::graphics::{self, Image};
+use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::nalgebra as na;
 use rand;
 
@@ -25,14 +26,14 @@ impl MainState {
             player: Player::new(Image::from_rgba8(
                 ctx,
                 32, 32,
-                &[0; 32 * 32 * 4]
+                &[255; 32 * 32 * 4]
             )?),
         })
     }
 }
 
 impl EventHandler for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
         Ok(())
     }
 
@@ -40,9 +41,34 @@ impl EventHandler for MainState {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
         self.maze.set([5, 7].into(), Tile::Wall);
         graphics::draw(ctx, &self.maze, (na::Point2::new(100.0, 100.0),))?;
+        graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0),))?;
 
         graphics::present(ctx)?;
         Ok(())
+    }
+
+    fn key_down_event(
+        &mut self,
+        ctx: &mut Context,
+        keycode: KeyCode,
+        _keymods: KeyMods,
+        _repeat: bool
+    ) {
+        match keycode {
+            KeyCode::Up => {
+                self.player.translate((0.0, -5.0));
+            },
+            KeyCode::Down => {
+                self.player.translate((0.0, 5.0));
+            },
+            KeyCode::Left => {
+                self.player.translate((-5.0, 0.0));
+            },
+            KeyCode::Right => {
+                self.player.translate((5.0, 0.0));
+            },
+            _ => ()
+        }
     }
 }
 
