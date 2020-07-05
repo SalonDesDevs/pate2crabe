@@ -1,22 +1,28 @@
 use std::collections::HashMap;
+use std::time::Duration;
 
+use ggez::{self, Context, GameResult};
 use ggez::graphics::{BlendMode, DrawParam, Drawable, Image, Rect};
 use ggez::nalgebra as na;
-use ggez::{self, Context, GameResult};
+use ggez::timer;
 
 pub struct Animation<'a> {
     frames: Vec<&'a Image>,
     index: usize,
-    delay: usize,
+    interval: Duration,
 }
 
 impl<'a> Animation<'a> {
-    pub fn new(frames: Vec<&'a Image>, delay: usize) -> Animation<'a> {
+    pub fn new(frames: Vec<&'a Image>, interval: Duration) -> Animation<'a> {
         Animation {
             frames,
             index: 0,
-            delay,
+            interval
         }
+    }
+
+    pub fn next(&mut self) {
+        self.index = (self.index + 1) % self.frames.len();
     }
 }
 
@@ -50,6 +56,7 @@ pub struct Player<'a> {
     pub pos: (f32, f32),
     animations: HashMap<PlayerState, Animation<'a>>,
     state: PlayerState,
+    last_update_time: Duration,
 }
 
 impl<'a> Player<'a> {
@@ -58,6 +65,7 @@ impl<'a> Player<'a> {
             pos: (1.0, 1.0), // start
             animations,
             state: PlayerState::Idle,
+            last_update_time: Duration::from_secs(0),
         }
     }
 
@@ -66,11 +74,28 @@ impl<'a> Player<'a> {
             self.pos = (self.pos.0 + vec.0, self.pos.1 + vec.1);
         }
     }
+
+    fn current_animation(&self) -> &Animation {
+        &self.animations[&self.state]
+    }
+
+    pub fn set_state(&mut self, state: PlayerState) {
+        self.state = state;
+    }
+
+    pub fn next_frame(&mut self, ctx: &Context) {
+        let current_time = timer::time_since_start(ctx);
+
+        if current_time > self.last_update_time + self.current_animation().interval {
+            self.animations.get_mut(&self.state).unwrap().next();
+            self.last_update_time = current_time;
+        }
+    }
 }
 
 impl Drawable for Player<'_> {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
-        self.animations[&self.state].draw(
+        self.current_animation().draw(
             ctx,
             param.clone().dest(na::Point2::new(
                 param.dest.x + self.pos.0 * 32.0,
@@ -80,7 +105,7 @@ impl Drawable for Player<'_> {
     }
 
     fn dimensions(&self, ctx: &mut Context) -> Option<Rect> {
-        self.animations[&self.state].dimensions(ctx)
+        self.current_animation().dimensions(ctx)
     }
 
     fn set_blend_mode(&mut self, mode: Option<BlendMode>) {
@@ -91,6 +116,6 @@ impl Drawable for Player<'_> {
     }
 
     fn blend_mode(&self) -> Option<BlendMode> {
-        self.animations[&self.state].blend_mode()
+        self.current_animation().blend_mode()
     }
 }

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 use std::{env, path};
 
 use ggez::audio::{SoundData, SoundSource, Source};
@@ -42,19 +42,19 @@ impl<'a> MainState<'a> {
         let mut player_animations = HashMap::new();
         player_animations.insert(
             PlayerState::Idle,
-            Animation::new(images.get_from_pattern("game/idle_*.png"), 50),
+            Animation::new(images.get_from_pattern("game/idle_*.png"), Duration::from_millis(50)),
         );
         player_animations.insert(
             PlayerState::Run,
-            Animation::new(images.get_from_pattern("game/run_*.png"), 50),
+            Animation::new(images.get_from_pattern("game/run_*.png"), Duration::from_millis(50)),
         );
         player_animations.insert(
             PlayerState::Hurt,
-            Animation::new(images.get_from_pattern("game/hurt_*.png"), 50),
+            Animation::new(images.get_from_pattern("game/hurt_*.png"), Duration::from_millis(50)),
         );
         player_animations.insert(
             PlayerState::Dead,
-            Animation::new(images.get_from_pattern("game/death_*.png"), 50),
+            Animation::new(images.get_from_pattern("game/death_*.png"), Duration::from_millis(50)),
         );
 
         let mut source =
@@ -109,6 +109,7 @@ impl EventHandler for MainState<'_> {
                 self.player.translate((1.0, 0.0));
             }
         }
+        self.player.next_frame(ctx);
 
         Ok(())
     }
