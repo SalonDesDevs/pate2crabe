@@ -61,17 +61,13 @@ impl Maze {
         for i in 0..6 {
             loop {
                 let pos: CellIndex = [
-                    rng.gen_range(0, self.dim.0 / 2),
-                    rng.gen_range(0, self.dim.1 / 2),
+                    rng.gen_range(0, self.dim.0 / 2) * 2 + 1,
+                    rng.gen_range(0, self.dim.1 / 2) * 2 + 1,
                 ]
                 .into();
 
-                if pos != [1, 1].into() && self.get_reward(pos).is_none() {
-                    self.rewards.push(Reward::new(
-                        images,
-                        [pos.x * 2 + 1, pos.y * 2 + 1].into(),
-                        i > 2,
-                    ));
+                if pos != CellIndex::from([1, 1]) && self.get_reward(pos).is_none() {
+                    self.rewards.push(Reward::new(images, pos, i > 2));
                     break;
                 }
             }
@@ -86,6 +82,10 @@ impl Maze {
 
     pub fn get_reward(&self, pos: CellIndex) -> Option<&Reward> {
         self.rewards.iter().find(|r| r.pos() == &pos)
+    }
+
+    pub fn get_mut_reward(&mut self, pos: CellIndex) -> Option<&mut Reward> {
+        self.rewards.iter_mut().find(|r| r.pos() == &pos)
     }
 
     fn backtrack_gen<R: Rng>(&mut self, curr: CellIndex, rng: &mut R) {
@@ -250,6 +250,10 @@ impl Drawable for Maze {
             }
         }
         for r in &self.rewards {
+            if r.found {
+                continue;
+            }
+
             r.draw(
                 ctx,
                 param.clone().dest([

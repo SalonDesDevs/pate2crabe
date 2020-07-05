@@ -6,7 +6,8 @@ use ggez::{Context, GameResult};
 #[derive(Debug, Clone)]
 pub struct Reward {
     texture: Image,
-    malus: bool,
+    pub malus: bool,
+    pub found: bool,
     pos: Point2<usize>,
 }
 
@@ -14,6 +15,7 @@ impl Reward {
     pub fn new(assets: &Assets<Image>, pos: Point2<usize>, malus: bool) -> Reward {
         Reward {
             malus,
+            found: false,
             texture: if malus {
                 assets["/game/pan_death.png"].clone()
             } else {

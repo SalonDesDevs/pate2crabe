@@ -91,6 +91,34 @@ impl EventHandler for MainState<'_> {
 
         let (fx, fy) = self.player.pos;
         let (x, y) = (fx as usize, fy as usize);
+
+        for cx in 0..20 {
+            for cy in 0..20 {
+                if cx != x || cy != y {
+                    continue;
+                }
+
+                if let Some(reward) = self.maze.get_mut_reward([cx, cy].into()) {
+                    if reward.found {
+                        continue;
+                    }
+
+                    reward.found = true;
+
+                    if reward.malus {
+                        println!("Perdu UwU");
+                        std::process::exit(0);
+                    } else {
+                        self.found += 1;
+                        if self.found == 3 {
+                            println!("Gagné OwO");
+                            std::process::exit(0);
+                        }
+                    }
+                }
+            }
+        }
+
         if keyboard::is_key_pressed(ctx, KeyCode::Up) {
             if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
                 self.player.translate((0.0, -1.0));
