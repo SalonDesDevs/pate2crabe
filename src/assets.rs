@@ -8,9 +8,15 @@ use ggez::graphics::Image;
 pub fn load_assets(ctx: &mut Context, path: &Path) -> GameResult<Assets> {
     let mut assets = HashMap::new();
     for p in glob::glob((path.display().to_string() + "/**/*.png").as_str()).unwrap() {
-        let image = p.unwrap().display().to_string().replace(path.display().to_string().as_str(), "");
+        let image = p
+            .unwrap()
+            .display()
+            .to_string()
+            .replace(path.display().to_string().as_str(), "")
+            .replace("\\", "/");
         assets.insert(image.clone(), Image::new(ctx, image.as_str())?);
     }
+
     Ok(Assets {
         assets
     })

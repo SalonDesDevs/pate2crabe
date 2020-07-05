@@ -8,7 +8,7 @@ use rand;
 use ggez::conf::{NumSamples, WindowSetup, WindowMode, FullscreenType};
 use ggez::event::{self, EventHandler};
 use ggez::graphics::{self, Text, DrawParam, Rect, Color, MeshBuilder, DrawMode, FillOptions};
-use ggez::input::keyboard::{KeyCode, KeyMods};
+use ggez::input::keyboard::{self, KeyCode};
 use ggez::nalgebra as na;
 
 use ggez::{Context, ContextBuilder, GameResult};
@@ -79,7 +79,7 @@ impl MainState {
 }
 
 impl EventHandler for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
         let diff = 10i32 - (Instant::now() - self.start).as_secs() as i32;
         if diff > 0 {
             self.info = Text::new(format!("{:02}", diff));
@@ -88,13 +88,40 @@ impl EventHandler for MainState {
             self.hidden = true;
         }
 
+        let (fx, fy) = self.player.pos;
+        let (x, y) = (fx as usize, fy as usize);
+        if keyboard::is_key_pressed(ctx, KeyCode::Up) {
+            if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
+                self.player.translate((0.0, -1.0));
+            }
+        }
+        else if keyboard::is_key_pressed(ctx, KeyCode::Down) {
+            if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
+                self.player.translate((0.0, 1.0));
+            }
+        }
+        if keyboard::is_key_pressed(ctx, KeyCode::Left) {
+            if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
+                self.player.translate((-1.0, 0.0));
+            }
+        }
+        else if keyboard::is_key_pressed(ctx, KeyCode::Right) {
+            if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
+                self.player.translate((1.0, 0.0));
+            }
+        }
+
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        graphics::draw(ctx, &self.maze, (na::Point2::new(0.0, 0.0),))?;
+        graphics::draw(
+            ctx,
+            &self.maze,
+            DrawParam::new().dest([0.0, 0.0]).scale([1., 1.]),
+        )?;
         graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0),))?;
 
         graphics::draw(ctx, &self.info, DrawParam::new().dest(na::Point2::new(725.0, 50.0)).scale(na::Vector2::new(2.0, 2.0)))?;
@@ -118,41 +145,6 @@ impl EventHandler for MainState {
 
         Ok(())
     }
-
-    fn key_down_event(
-        &mut self,
-        _ctx: &mut Context,
-        keycode: KeyCode,
-        _keymods: KeyMods,
-        _repeat: bool,
-    ) {
-        let (fx, fy) = self.player.pos;
-        let (x, y) = (fx as usize, fy as usize);
-
-        match keycode {
-            KeyCode::Up => {
-                if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
-                    self.player.translate((0.0, -1.0));
-                }
-            }
-            KeyCode::Down => {
-                if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
-                    self.player.translate((0.0, 1.0));
-                }
-            }
-            KeyCode::Left => {
-                if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
-                    self.player.translate((-1.0, 0.0));
-                }
-            }
-            KeyCode::Right => {
-                if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
-                    self.player.translate((1.0, 0.0));
-                }
-            }
-            _ => (),
-        }
-    }
 }
 
 fn main() -> GameResult {
@@ -170,7 +162,7 @@ fn main() -> GameResult {
             title: "pate2crabe".to_owned(),
             samples: NumSamples::Zero,
             vsync: true,
-            icon: "".to_owned(),
+            icon: "/ui/arrowBrown_right.png".to_owned(),
             srgb: true,
         })
         .window_mode(WindowMode {
