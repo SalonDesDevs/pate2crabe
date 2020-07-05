@@ -124,7 +124,7 @@ impl EventHandler for MainState<'_> {
             }
         }
 
-        if self.found == 3 && x == 19 && y == 19 {
+        if self.found == 3 && x == 19 && y == 20 {
             println!("Gagné OwO");
             std::process::exit(0);
         }
