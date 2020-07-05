@@ -112,7 +112,7 @@ impl<'a> Player<'a> {
         }
 
         // Movement
-        if current_time > self.last_movement_update_time + Duration::from_millis(5)
+        if current_time > self.last_movement_update_time + Duration::from_millis(20)
             && self.state != PlayerState::Dead
             && self.state != PlayerState::Hurt
         {

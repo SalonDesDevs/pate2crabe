@@ -50,28 +50,28 @@ impl<'a> MainState<'a> {
             PlayerState::Idle,
             Animation::new(
                 images.get_from_pattern("game/idle_*.png"),
-                Duration::from_millis(50),
+                Duration::from_millis(150),
             ),
         );
         player_animations.insert(
             PlayerState::Run,
             Animation::new(
                 images.get_from_pattern("game/run_*.png"),
-                Duration::from_millis(50),
+                Duration::from_millis(125),
             ),
         );
         player_animations.insert(
             PlayerState::Hurt,
             Animation::new(
                 images.get_from_pattern("game/hurt_*.png"),
-                Duration::from_millis(50),
+                Duration::from_millis(125),
             ),
         );
         player_animations.insert(
             PlayerState::Dead,
             Animation::new(
                 images.get_from_pattern("game/death_*.png"),
-                Duration::from_millis(50),
+                Duration::from_millis(125),
             ),
         );
 
@@ -98,7 +98,7 @@ impl<'a> MainState<'a> {
 impl EventHandler for MainState<'_> {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         if let Some(since) = self.dead_since {
-            if (Instant::now() - since).as_millis() >= 650 {
+            if (Instant::now() - since).as_millis() >= 800 {
                 println!("Perdu UwU");
                 std::process::exit(0);
             }
