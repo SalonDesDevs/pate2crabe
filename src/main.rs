@@ -75,7 +75,7 @@ impl<'a> MainState<'a> {
         );
 
         let mut source =
-            Source::from_data(ctx, sounds["/audio/game/audio_loop.ogg"].clone()).unwrap();
+            Source::from_data(ctx, sounds["/audio/game/audio_loop.ogg"].clone())?;
         source.set_repeat(true);
         source.play_detached()?;
 
@@ -84,7 +84,7 @@ impl<'a> MainState<'a> {
             info: Text::new("10"),
             start: Instant::now(),
             found: 0,
-            player: Player::new(player_animations),
+            player: Player::new(player_animations, Source::from_data(ctx, sounds["/audio/game/running.ogg"].clone())?),
             images,
             sounds,
             hidden: false,

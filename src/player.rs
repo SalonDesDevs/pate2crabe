@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use ggez::graphics::{BlendMode, DrawParam, Drawable, Image, Rect};
+use ggez::{self, Context, GameResult};
+use ggez::audio::{SoundSource, Source};
+use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
 use ggez::nalgebra as na;
 use ggez::timer;
-use ggez::{self, Context, GameResult};
 
 pub struct Animation<'a> {
     frames: Vec<&'a Image>,
@@ -59,10 +60,13 @@ pub struct Player<'a> {
     last_animation_update_time: Duration,
     last_movement_update_time: Duration,
     current_translation: Option<(f32, f32, f32, f32)>,
+    step_count: usize,
+    running_sound: Source,
 }
 
 impl<'a> Player<'a> {
-    pub fn new(animations: HashMap<PlayerState, Animation>) -> Player {
+    pub fn new(animations: HashMap<PlayerState, Animation>, mut running_sound: Source) -> Player {
+        running_sound.set_volume(0.3);
         Player {
             pos: (1.0, 1.0), // start
             animations,
@@ -70,6 +74,8 @@ impl<'a> Player<'a> {
             last_animation_update_time: Duration::from_secs(0),
             last_movement_update_time: Duration::from_secs(0),
             current_translation: None,
+            step_count: 0,
+            running_sound,
         }
     }
 
@@ -77,6 +83,10 @@ impl<'a> Player<'a> {
         if self.state != PlayerState::Dead && self.current_translation.is_none() {
             self.current_translation = Some((vec.0, vec.1, self.pos.0 + vec.0, self.pos.1 + vec.1));
             self.state = PlayerState::Run;
+            if self.step_count % 2 == 0 {
+                self.running_sound.play();
+            }
+            self.step_count += 1;
         }
     }
 
