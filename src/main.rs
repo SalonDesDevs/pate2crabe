@@ -130,8 +130,7 @@ impl EventHandler for MainState<'_> {
                 if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
                     self.player.translate((0.0, 1.0));
                 }
-            }
-            if keyboard::is_key_pressed(ctx, KeyCode::Left) {
+            } else if keyboard::is_key_pressed(ctx, KeyCode::Left) {
                 if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
                     self.player.translate((-1.0, 0.0));
                 }
