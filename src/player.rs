@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use ggez::{self, Context, GameResult};
-use ggez::graphics::{BlendMode, DrawParam, Drawable, Image, Rect};
+use ggez::audio::{SoundSource, Source};
+use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
 use ggez::nalgebra as na;
 use ggez::timer;
 
@@ -17,7 +18,7 @@ impl<'a> Animation<'a> {
         Animation {
             frames,
             index: 0,
-            interval
+            interval,
         }
     }
 
@@ -56,24 +57,39 @@ pub struct Player<'a> {
     pub pos: (f32, f32),
     animations: HashMap<PlayerState, Animation<'a>>,
     state: PlayerState,
-    last_update_time: Duration,
+    last_animation_update_time: Duration,
+    last_movement_update_time: Duration,
+    current_translation: Option<(f32, f32, f32, f32)>,
+    step_count: usize,
+    running_sound: Source,
 }
 
 impl<'a> Player<'a> {
-    pub fn new(animations: HashMap<PlayerState, Animation>) -> Player {
+    pub fn new(animations: HashMap<PlayerState, Animation>, mut running_sound: Source) -> Player {
+        running_sound.set_volume(0.3);
         Player {
             pos: (1.0, 1.0), // start
             animations,
             state: PlayerState::Idle,
-            last_update_time: Duration::from_secs(0),
+            last_animation_update_time: Duration::from_secs(0),
+            last_movement_update_time: Duration::from_secs(0),
+            current_translation: None,
+            step_count: 0,
+            running_sound,
         }
     }
 
     pub fn translate(&mut self, vec: (f32, f32)) {
-        if self.state != PlayerState::Dead {
-            self.pos = (self.pos.0 + vec.0, self.pos.1 + vec.1);
+        if self.state != PlayerState::Dead && self.current_translation.is_none() {
+            self.current_translation = Some((vec.0, vec.1, self.pos.0 + vec.0, self.pos.1 + vec.1));
+            self.state = PlayerState::Run;
+            if self.step_count % 2 == 0 {
+                self.running_sound.play();
+            }
+            self.step_count += 1;
         }
     }
+
     pub fn is_dead(&self) -> bool {
         self.state == PlayerState::Dead
     }
@@ -86,12 +102,37 @@ impl<'a> Player<'a> {
         self.state = state;
     }
 
-    pub fn next_frame(&mut self, ctx: &Context) {
+    pub fn update(&mut self, ctx: &Context) {
         let current_time = timer::time_since_start(ctx);
 
-        if current_time > self.last_update_time + self.current_animation().interval {
+        // Animations
+        if current_time > self.last_animation_update_time + self.current_animation().interval {
             self.animations.get_mut(&self.state).unwrap().next();
-            self.last_update_time = current_time;
+            self.last_animation_update_time = current_time;
+        }
+
+        // Movement
+        if current_time > self.last_movement_update_time + Duration::from_millis(5)
+            && self.state != PlayerState::Dead
+            && self.state != PlayerState::Hurt
+        {
+            if let Some(translation) = self.current_translation {
+                if translation.2 <= self.pos.0 + 0.1
+                    && translation.2 >= self.pos.0 - 0.1
+                    && translation.3 <= self.pos.1 + 0.1
+                    && translation.3 >= self.pos.1 - 0.1
+                {
+                    self.pos = (translation.2, translation.3);
+                    self.state = PlayerState::Idle;
+                    self.current_translation = None;
+                } else {
+                    self.pos = (
+                        self.pos.0 + translation.0 * 0.1,
+                        self.pos.1 + translation.1 * 0.1,
+                    );
+                }
+                self.last_movement_update_time = current_time;
+            }
         }
     }
 }

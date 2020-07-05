@@ -35,7 +35,7 @@ impl<A> Assets<A> {
 
         Ok(Assets {
             base_path: path.to_owned(),
-            assets
+            assets,
         })
     }
 
@@ -46,14 +46,14 @@ impl<A> Assets<A> {
     pub fn get_from_pattern<'a>(&'a self, pattern: &str) -> Vec<&'a A> {
         let mut matching_assets = Vec::new();
         for p in glob::glob(self.base_path.join(pattern).to_str().unwrap()).unwrap() {
-            matching_assets.push(&self.assets[
-                &p
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .replace(self.base_path.to_str().unwrap(), "")
-                .replace("\\", "/")
-            ]);
+            matching_assets.push(
+                &self.assets[&p
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .replace(self.base_path.to_str().unwrap(), "")
+                    .replace("\\", "/")],
+            );
         }
         matching_assets
     }
