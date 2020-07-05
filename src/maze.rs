@@ -1,6 +1,6 @@
-use ggez::{Context, GameResult};
-use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
+use ggez::graphics::{BlendMode, DrawParam, Drawable, Image, Rect};
 use ggez::nalgebra as na;
+use ggez::{Context, GameResult};
 use na::{Point2, Vector2};
 use rand::prelude::*;
 
@@ -33,7 +33,7 @@ impl Direction {
             Self::South => [0, -1],
             Self::West => [-1, 0],
         }
-            .into()
+        .into()
     }
 }
 
@@ -45,18 +45,18 @@ pub const DIRECTIONS: [Direction; 4] = [
 ];
 
 impl Maze {
-    pub fn new((w, h): (usize, usize), assets: &Assets) -> Self {
+    pub fn new((w, h): (usize, usize), images: &Assets<Image>) -> Self {
         Maze {
             dim: (w, h),
             tiles: vec![Tile::Wall(None); w * h],
-            grass_asset: assets["/game/grass.png"].clone(),
+            grass_asset: images["/game/grass.png"].clone(),
         }
     }
 
-    pub fn generate<R: Rng>(&mut self, rng: &mut R, assets: &Assets) {
+    pub fn generate<R: Rng>(&mut self, rng: &mut R, images: &Assets<Image>) {
         // start at (0, 0)
         self.backtrack_gen([1, 1].into(), rng);
-        self.set_textures(assets);
+        self.set_textures(images);
     }
 
     fn backtrack_gen<R: Rng>(&mut self, curr: CellIndex, rng: &mut R) {
@@ -107,7 +107,7 @@ impl Maze {
         (0..self.dim.0).contains(&pos.x) && (0..self.dim.1).contains(&pos.y)
     }
 
-    fn set_textures(&mut self, assets: &Assets) {
+    fn set_textures(&mut self, images: &Assets<Image>) {
         for y in 0..self.dim.1 {
             for x in 0..self.dim.0 {
                 let index = CellIndex::from([x, y]);
@@ -134,24 +134,40 @@ impl Maze {
                         Some(Tile::Wall(_))
                     ),
                 ) {
-                    (true, true, false, false) => Some(assets["/game/wall_corn_top_lft.png"].clone()),
-                    (true, false, false, true) => Some(assets["/game/wall_corn_top_rgt.png"].clone()),
-                    (false, true, true, false) => Some(assets["/game/wall_corn_bot_lft.png"].clone()),
-                    (false, false, true, true) => Some(assets["/game/wall_corn_bot_rgt.png"].clone()),
+                    (true, true, false, false) => {
+                        Some(images["/game/wall_corn_top_lft.png"].clone())
+                    }
+                    (true, false, false, true) => {
+                        Some(images["/game/wall_corn_top_rgt.png"].clone())
+                    }
+                    (false, true, true, false) => {
+                        Some(images["/game/wall_corn_bot_lft.png"].clone())
+                    }
+                    (false, false, true, true) => {
+                        Some(images["/game/wall_corn_bot_rgt.png"].clone())
+                    }
 
-                    (true, true, true, true) => Some(assets["/game/wall_crss_all.png"].clone()),
-                    (true, true, false, true) => Some(assets["/game/wall_crss_hori_top.png"].clone()),
-                    (false, true, true, true) => Some(assets["/game/wall_crss_hori_bot.png"].clone()),
-                    (true, true, true, false) => Some(assets["/game/wall_crss_vert_lft.png"].clone()),
-                    (true, false, true, true) => Some(assets["/game/wall_crss_vert_rgt.png"].clone()),
+                    (true, true, true, true) => Some(images["/game/wall_crss_all.png"].clone()),
+                    (true, true, false, true) => {
+                        Some(images["/game/wall_crss_hori_top.png"].clone())
+                    }
+                    (false, true, true, true) => {
+                        Some(images["/game/wall_crss_hori_bot.png"].clone())
+                    }
+                    (true, true, true, false) => {
+                        Some(images["/game/wall_crss_vert_lft.png"].clone())
+                    }
+                    (true, false, true, true) => {
+                        Some(images["/game/wall_crss_vert_rgt.png"].clone())
+                    }
 
-                    (false, false, false, true) => Some(assets["/game/wall_hori_rgt.png"].clone()),
-                    (false, true, false, true) => Some(assets["/game/wall_hori_mid.png"].clone()),
-                    (false, true, false, false) => Some(assets["/game/wall_hori_lft.png"].clone()),
+                    (false, false, false, true) => Some(images["/game/wall_hori_rgt.png"].clone()),
+                    (false, true, false, true) => Some(images["/game/wall_hori_mid.png"].clone()),
+                    (false, true, false, false) => Some(images["/game/wall_hori_lft.png"].clone()),
 
-                    (true, false, false, false) => Some(assets["/game/wall_vert_top.png"].clone()),
-                    (true, false, true, false) => Some(assets["/game/wall_vert_mid.png"].clone()),
-                    (false, false, true, false) => Some(assets["/game/wall_vert_bot.png"].clone()),
+                    (true, false, false, false) => Some(images["/game/wall_vert_top.png"].clone()),
+                    (true, false, true, false) => Some(images["/game/wall_vert_mid.png"].clone()),
+                    (false, false, true, false) => Some(images["/game/wall_vert_bot.png"].clone()),
 
                     (false, false, false, false) => None,
                 };
@@ -172,38 +188,6 @@ impl Maze {
             false => None,
             true => Some(self.get(pos2)),
         }
-    }
-}
-
-impl Drawable for Tile {
-    fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
-        const WALL_SCALING: f32 = 1.3;
-
-        if let Tile::Wall(Some(img)) = self {
-            img.draw(
-                ctx,
-                param
-                    .clone()
-                    .scale([param.scale.x * WALL_SCALING, param.scale.y * WALL_SCALING])
-                    .dest([
-                        param.dest.x - (32. * WALL_SCALING - 32.) * param.scale.x / 2.,
-                        param.dest.y - (32. * WALL_SCALING - 32.) * param.scale.y / 2.,
-                    ]),
-            )?;
-        }
-        Ok(())
-    }
-
-    fn dimensions(&self, _ctx: &mut Context) -> Option<Rect> {
-        Option::from(Rect::new(0., 0., 16., 16.))
-    }
-
-    fn set_blend_mode(&mut self, _mode: Option<BlendMode>) {
-        unimplemented!()
-    }
-
-    fn blend_mode(&self) -> Option<BlendMode> {
-        unimplemented!()
     }
 }
 

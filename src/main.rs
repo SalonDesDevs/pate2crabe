@@ -3,15 +3,16 @@ use std::path::PathBuf;
 use std::time::Instant;
 use std::{env, path};
 
-use rand;
-
-use ggez::conf::{NumSamples, WindowSetup, WindowMode, FullscreenType};
+use ggez::audio::{SoundData, SoundSource, Source};
+use ggez::conf::{FullscreenType, NumSamples, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler};
-use ggez::graphics::{self, Text, DrawParam, Rect, Color, MeshBuilder, DrawMode, FillOptions};
+use ggez::graphics::{
+    self, Color, DrawMode, DrawParam, FillOptions, Image, MeshBuilder, Rect, Text,
+};
 use ggez::input::keyboard::{self, KeyCode};
 use ggez::nalgebra as na;
-
 use ggez::{Context, ContextBuilder, GameResult};
+use rand;
 
 use crate::assets::{load_assets, Assets};
 use crate::maze::Maze;
@@ -28,22 +29,25 @@ struct MainState {
     info: Text,
     start: Instant,
     found: u8,
-    assets: Assets,
-    hidden: bool
+    images: Assets<Image>,
+    sounds: Assets<SoundData>,
+    hidden: bool,
 }
 
 impl MainState {
     fn new(ctx: &mut Context, path: PathBuf) -> GameResult<MainState> {
-        let assets = load_assets(ctx, &path)?;
-        let mut maze = Maze::new((21, 21), &assets);
-        maze.generate(&mut rand::thread_rng(), &assets);
+        let images = load_assets(&path, &["png"], |path| Image::new(ctx, path))?;
+        let mut maze = Maze::new((21, 21), &images);
+        maze.generate(&mut rand::thread_rng(), &images);
+
+        let sounds = load_assets(&path, &["ogg", "wav"], |path| SoundData::new(ctx, path))?;
 
         let mut player_animations = HashMap::new();
         player_animations.insert(
             PlayerState::Idle,
             Animation::new(
                 ctx,
-                &assets,
+                &images,
                 &[
                     "/game/idle_1.png",
                     "/game/idle_2.png",
@@ -55,16 +59,21 @@ impl MainState {
         );
         player_animations.insert(
             PlayerState::Run,
-            Animation::new(ctx, &assets, &["/game/idle_1.png"], 50),
+            Animation::new(ctx, &images, &["/game/idle_1.png"], 50),
         );
         player_animations.insert(
             PlayerState::Hurt,
-            Animation::new(ctx, &assets, &["/game/idle_1.png"], 50),
+            Animation::new(ctx, &images, &["/game/idle_1.png"], 50),
         );
         player_animations.insert(
             PlayerState::Dead,
-            Animation::new(ctx, &assets, &["/game/idle_1.png"], 50),
+            Animation::new(ctx, &images, &["/game/idle_1.png"], 50),
         );
+
+        let mut source =
+            Source::from_data(ctx, sounds["/audio/game/audio_loop.ogg"].clone()).unwrap();
+        source.set_repeat(true);
+        source.play_detached()?;
 
         Ok(MainState {
             maze,
@@ -72,8 +81,9 @@ impl MainState {
             start: Instant::now(),
             found: 0,
             player: Player::new(player_animations),
-            assets,
-            hidden: false
+            images,
+            sounds,
+            hidden: false,
         })
     }
 }
@@ -98,8 +108,7 @@ impl EventHandler for MainState {
             if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
                 self.player.translate((0.0, -1.0));
             }
-        }
-        else if keyboard::is_key_pressed(ctx, KeyCode::Down) {
+        } else if keyboard::is_key_pressed(ctx, KeyCode::Down) {
             if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
                 self.player.translate((0.0, 1.0));
             }
@@ -108,8 +117,7 @@ impl EventHandler for MainState {
             if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
                 self.player.translate((-1.0, 0.0));
             }
-        }
-        else if keyboard::is_key_pressed(ctx, KeyCode::Right) {
+        } else if keyboard::is_key_pressed(ctx, KeyCode::Right) {
             if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
                 self.player.translate((1.0, 0.0));
             }
@@ -128,7 +136,27 @@ impl EventHandler for MainState {
         )?;
         graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0),))?;
 
-        graphics::draw(ctx, &self.info, DrawParam::new().dest(na::Point2::new(725.0, 50.0)).scale(na::Vector2::new(2.0, 2.0)))?;
+        graphics::draw(
+            ctx,
+            &self.images["/ui/panel_brown.png"],
+            DrawParam::new()
+                .dest(na::Point2::new(690.0, 40.0))
+                .scale(na::Vector2::new(0.9, 0.5)),
+        )?;
+        graphics::draw(
+            ctx,
+            &self.images["/ui/panelInset_beige.png"],
+            DrawParam::new()
+                .dest(na::Point2::new(697.5, 47.5))
+                .scale(na::Vector2::new(0.8, 0.38)),
+        )?;
+        graphics::draw(
+            ctx,
+            &self.info,
+            DrawParam::new()
+                .dest(na::Point2::new(715.0, 50.0))
+                .scale(na::Vector2::new(2.0, 2.0)),
+        )?;
 
         if self.hidden {
             let (x, y) = self.player.pos;
@@ -136,13 +164,49 @@ impl EventHandler for MainState {
             let black = Color::from_rgb(0, 0, 0);
             let mut mesh = MeshBuilder::new();
 
-            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: 0.0, y: 0.0, w: x * 32.0 - 15.0, h: 675.0 }, black.clone());
-            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0, y: 0.0, w: 62.5, h: y * 32.0 - 15.0 }, black.clone());
-            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0, y: y * 32.0 - 10.0 + 50.0, w: 62.5, h: 675.0 - y * 32.0 - 15.0 + 55.0 }, black.clone());
-            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0 + 62.5, y: 0.0, w: 580.0 - x * 32.0 - 15.0 + 62.5, h: 675.0 }, black.clone());
+            mesh.rectangle(
+                DrawMode::Fill(FillOptions::DEFAULT),
+                Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    w: x * 32.0 - 15.0,
+                    h: 675.0,
+                },
+                black.clone(),
+            );
+            mesh.rectangle(
+                DrawMode::Fill(FillOptions::DEFAULT),
+                Rect {
+                    x: x * 32.0 - 15.0,
+                    y: 0.0,
+                    w: 62.5,
+                    h: y * 32.0 - 15.0,
+                },
+                black.clone(),
+            );
+            mesh.rectangle(
+                DrawMode::Fill(FillOptions::DEFAULT),
+                Rect {
+                    x: x * 32.0 - 15.0,
+                    y: y * 32.0 - 10.0 + 50.0,
+                    w: 62.5,
+                    h: 675.0 - y * 32.0 - 15.0 + 55.0,
+                },
+                black.clone(),
+            );
+            mesh.rectangle(
+                DrawMode::Fill(FillOptions::DEFAULT),
+                Rect {
+                    x: x * 32.0 - 15.0 + 62.5,
+                    y: 0.0,
+                    w: 580.0 - x * 32.0 - 15.0 + 62.5,
+                    h: 675.0,
+                },
+                black.clone(),
+            );
 
             let mesh = &mesh.build(ctx)?;
-            graphics::draw(ctx, mesh, (na::Point2::new(0.0, 0.0), ))?;
+            graphics::draw(ctx, mesh, (na::Point2::new(0.0, 0.0),))?;
         }
 
         graphics::present(ctx)?;

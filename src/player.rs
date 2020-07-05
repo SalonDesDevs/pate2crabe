@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use ggez::{self, Context, GameResult};
-use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
+use ggez::graphics::{BlendMode, DrawParam, Drawable, Image, Rect};
 use ggez::nalgebra as na;
+use ggez::{self, Context, GameResult};
 
 use crate::assets::Assets;
 
@@ -13,9 +13,14 @@ pub struct Animation {
 }
 
 impl Animation {
-    pub fn new(_ctx: &mut Context, assets: &Assets, sprite_paths: &[&str], delay: usize) -> Animation {
+    pub fn new(
+        _ctx: &mut Context,
+        images: &Assets<Image>,
+        sprite_paths: &[&str],
+        delay: usize,
+    ) -> Animation {
         Animation {
-            frames: sprite_paths.iter().map(|p| assets[*p].clone()).collect(),
+            frames: sprite_paths.iter().map(|p| images[*p].clone()).collect(),
             index: 0,
             delay,
         }
@@ -65,22 +70,20 @@ impl Player {
 
     pub fn translate(&mut self, vec: (f32, f32)) {
         if self.state != PlayerState::Dead {
-            self.pos = (
-                self.pos.0 + vec.0,
-                self.pos.1 + vec.1
-            );
+            self.pos = (self.pos.0 + vec.0, self.pos.1 + vec.1);
         }
     }
 }
 
 impl Drawable for Player {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
-        self.animations[&self.state].draw(ctx, param.clone().dest(
-            na::Point2::new(
+        self.animations[&self.state].draw(
+            ctx,
+            param.clone().dest(na::Point2::new(
                 param.dest.x + self.pos.0 * 32.0,
                 param.dest.y + self.pos.1 * 32.0,
-            )
-        ))
+            )),
+        )
     }
 
     fn dimensions(&self, ctx: &mut Context) -> Option<Rect> {
@@ -88,7 +91,10 @@ impl Drawable for Player {
     }
 
     fn set_blend_mode(&mut self, mode: Option<BlendMode>) {
-        self.animations.get_mut(&self.state).unwrap().set_blend_mode(mode);
+        self.animations
+            .get_mut(&self.state)
+            .unwrap()
+            .set_blend_mode(mode);
     }
 
     fn blend_mode(&self) -> Option<BlendMode> {

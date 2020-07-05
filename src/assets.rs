@@ -2,38 +2,47 @@ use std::collections::HashMap;
 use std::ops::Index;
 use std::path::Path;
 
-use ggez::{Context, GameResult};
-use ggez::graphics::Image;
+use ggez::GameResult;
 
-pub fn load_assets(ctx: &mut Context, path: &Path) -> GameResult<Assets> {
+pub fn load_assets<A>(
+    path: &Path,
+    extensions: &[&str],
+    mut func: impl FnMut(&str) -> GameResult<A>,
+) -> GameResult<Assets<A>> {
     let mut assets = HashMap::new();
-    for p in glob::glob((path.display().to_string() + "/**/*.png").as_str()).unwrap() {
-        let image = p
-            .unwrap()
+    for p in glob::glob((path.display().to_string() + "/**/*").as_str()).unwrap() {
+        let pu = p.unwrap();
+        if extensions
+            .iter()
+            .all(|ext| !pu.to_str().unwrap().ends_with(*ext))
+        {
+            continue;
+        }
+        let name = pu
             .display()
             .to_string()
             .replace(path.display().to_string().as_str(), "")
             .replace("\\", "/");
-        assets.insert(image.clone(), Image::new(ctx, image.as_str())?);
+        assets.insert(name.clone(), func(name.as_str())?);
     }
 
-    Ok(Assets {
-        assets
-    })
+    println!("{:?}", assets.keys());
+
+    Ok(Assets { assets })
 }
 
-pub struct Assets {
-    assets: HashMap<String, Image>,
+pub struct Assets<A> {
+    assets: HashMap<String, A>,
 }
 
-impl Assets {
-    pub fn get(&self, key: &str) -> &Image {
+impl<A> Assets<A> {
+    pub fn get(&self, key: &str) -> &A {
         &self.assets[key]
     }
 }
 
-impl Index<&str> for Assets {
-    type Output = Image;
+impl<A> Index<&str> for Assets<A> {
+    type Output = A;
 
     fn index(&self, index: &str) -> &Self::Output {
         &self.assets[index]
