@@ -88,6 +88,10 @@ impl Maze {
         self.rewards.iter().find(|r| r.pos() == &pos)
     }
 
+    pub fn get_mut_reward(&mut self, pos: CellIndex) -> Option<&mut Reward> {
+        self.rewards.iter_mut().find(|r| r.pos() == &pos)
+    }
+
     fn backtrack_gen<R: Rng>(&mut self, curr: CellIndex, rng: &mut R) {
         let curr_as_vec: Vector2<isize> = [curr.x as isize, curr.y as isize].into();
 
@@ -248,6 +252,10 @@ impl Drawable for Maze {
             }
         }
         for r in &self.rewards {
+            if r.found {
+                continue;
+            }
+
             r.draw(
                 ctx,
                 param
