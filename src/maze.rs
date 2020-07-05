@@ -61,17 +61,13 @@ impl Maze {
         for i in 0..6 {
             loop {
                 let pos: CellIndex = [
-                    rng.gen_range(0, self.dim.0 / 2),
-                    rng.gen_range(0, self.dim.1 / 2),
+                    rng.gen_range(0, self.dim.0 / 2) * 2 + 1,
+                    rng.gen_range(0, self.dim.1 / 2) * 2 + 1,
                 ]
                 .into();
 
-                if pos != [1, 1].into() && self.get_reward(pos).is_none() {
-                    self.rewards.push(Reward::new(
-                        images,
-                        [pos.x * 2 + 1, pos.y * 2 + 1].into(),
-                        i > 2,
-                    ));
+                if pos != CellIndex::from([1, 1]) && self.get_reward(pos).is_none() {
+                    self.rewards.push(Reward::new(images, pos, i > 2));
                     break;
                 }
             }

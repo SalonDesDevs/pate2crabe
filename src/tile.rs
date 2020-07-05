@@ -15,7 +15,7 @@ impl Tile {
 
 impl Drawable for Tile {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
-        const WALL_SCALING: f32 = 1.3;
+        const WALL_SCALING: f32 = 1.2;
 
         if let Tile::Wall(Some(img)) = self {
             img.draw(
