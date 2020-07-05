@@ -94,12 +94,12 @@ impl EventHandler for MainState<'_> {
 
         for cx in 0..20 {
             for cy in 0..20 {
-                if cx != x || cy != y {
-                    continue;
-                }
-
                 if let Some(reward) = self.maze.get_mut_reward([cx, cy].into()) {
-                    if reward.found {
+                    if self.hidden {
+                        reward.texture = self.images["/game/pan_empty.png"].clone();
+                    }
+
+                    if cx != x || cy != y || reward.found {
                         continue;
                     }
 
@@ -110,13 +110,15 @@ impl EventHandler for MainState<'_> {
                         std::process::exit(0);
                     } else {
                         self.found += 1;
-                        if self.found == 3 {
-                            println!("Gagné OwO");
-                            std::process::exit(0);
-                        }
                     }
                 }
             }
+        }
+
+
+        if self.found == 3 && x == 10 && y == 19 {
+            println!("Gagné OwO");
+            std::process::exit(0);
         }
 
         if keyboard::is_key_pressed(ctx, KeyCode::Up) {

@@ -5,7 +5,7 @@ use ggez::{Context, GameResult};
 
 #[derive(Debug, Clone)]
 pub struct Reward {
-    texture: Image,
+    pub texture: Image,
     pub malus: bool,
     pub found: bool,
     pos: Point2<usize>,
@@ -32,7 +32,7 @@ impl Reward {
 
 impl Drawable for Reward {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
-        const SCALE: f32 = 0.7;
+        const SCALE: f32 = 0.8;
 
         self.texture.draw(
             ctx,
