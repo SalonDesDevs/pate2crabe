@@ -7,7 +7,7 @@ use rand;
 
 use ggez::conf::{NumSamples, WindowSetup, WindowMode, FullscreenType};
 use ggez::event::{self, EventHandler};
-use ggez::graphics::{self, Text, DrawParam};
+use ggez::graphics::{self, Text, DrawParam, Rect, Color, MeshBuilder, DrawMode, FillOptions};
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::nalgebra as na;
 
@@ -29,6 +29,7 @@ struct MainState {
     start: Instant,
     found: u8,
     assets: Assets,
+    hidden: bool
 }
 
 impl MainState {
@@ -72,6 +73,7 @@ impl MainState {
             found: 0,
             player: Player::new(player_animations),
             assets,
+            hidden: false
         })
     }
 }
@@ -83,6 +85,7 @@ impl EventHandler for MainState {
             self.info = Text::new(format!("{:02}", diff));
         } else {
             self.info = Text::new(format!("{}/3", self.found));
+            self.hidden = true;
         }
 
         Ok(())
@@ -95,6 +98,21 @@ impl EventHandler for MainState {
         graphics::draw(ctx, &self.player, (na::Point2::new(0.0, 0.0),))?;
 
         graphics::draw(ctx, &self.info, DrawParam::new().dest(na::Point2::new(725.0, 50.0)).scale(na::Vector2::new(2.0, 2.0)))?;
+
+        if self.hidden {
+            let (x, y) = self.player.pos;
+
+            let black = Color::from_rgb(0, 0, 0);
+            let mut mesh = MeshBuilder::new();
+
+            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: 0.0, y: 0.0, w: x * 32.0 - 15.0, h: 675.0 }, black.clone());
+            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0, y: 0.0, w: 55.0, h: y * 32.0 - 15.0 }, black.clone());
+            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0, y: y * 32.0 - 10.0 + 50.0, w: 55.0, h: 675.0 - y * 32.0 - 15.0 + 55.0 }, black.clone());
+            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0 + 55.0, y: 0.0, w: 800.0 - x * 32.0 - 15.0 + 55.0, h: 675.0 }, black.clone());
+
+            let mesh = &mesh.build(ctx)?;
+            graphics::draw(ctx, mesh, (na::Point2::new(0.0, 0.0), ))?;
+        }
 
         graphics::present(ctx)?;
 
