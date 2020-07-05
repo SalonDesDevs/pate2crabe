@@ -88,6 +88,10 @@ impl EventHandler for MainState {
             self.hidden = true;
         }
 
+        if !self.hidden {
+            return Ok(());
+        }
+
         let (fx, fy) = self.player.pos;
         let (x, y) = (fx as usize, fy as usize);
         if keyboard::is_key_pressed(ctx, KeyCode::Up) {
@@ -133,9 +137,9 @@ impl EventHandler for MainState {
             let mut mesh = MeshBuilder::new();
 
             mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: 0.0, y: 0.0, w: x * 32.0 - 15.0, h: 675.0 }, black.clone());
-            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0, y: 0.0, w: 55.0, h: y * 32.0 - 15.0 }, black.clone());
-            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0, y: y * 32.0 - 10.0 + 50.0, w: 55.0, h: 675.0 - y * 32.0 - 15.0 + 55.0 }, black.clone());
-            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0 + 55.0, y: 0.0, w: 800.0 - x * 32.0 - 15.0 + 55.0, h: 675.0 }, black.clone());
+            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0, y: 0.0, w: 62.5, h: y * 32.0 - 15.0 }, black.clone());
+            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0, y: y * 32.0 - 10.0 + 50.0, w: 62.5, h: 675.0 - y * 32.0 - 15.0 + 55.0 }, black.clone());
+            mesh.rectangle(DrawMode::Fill(FillOptions::DEFAULT), Rect { x: x * 32.0 - 15.0 + 62.5, y: 0.0, w: 580.0 - x * 32.0 - 15.0 + 62.5, h: 675.0 }, black.clone());
 
             let mesh = &mesh.build(ctx)?;
             graphics::draw(ctx, mesh, (na::Point2::new(0.0, 0.0), ))?;
