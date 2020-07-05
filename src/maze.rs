@@ -1,3 +1,4 @@
+use crate::rewards::Reward;
 use ggez::graphics::{BlendMode, DrawParam, Drawable, Image, Rect};
 use ggez::nalgebra as na;
 use ggez::{Context, GameResult};
@@ -15,6 +16,7 @@ pub struct Maze {
     dim: (usize, usize),
     tiles: Vec<Tile>,
     grass_asset: Image,
+    rewards: Vec<Reward>,
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -50,11 +52,21 @@ impl Maze {
             dim: (w, h),
             tiles: vec![Tile::Wall(None); w * h],
             grass_asset: images["/game/grass.png"].clone(),
+            rewards: vec![],
         }
     }
 
     pub fn generate<R: Rng>(&mut self, rng: &mut R, images: &Assets<Image>) {
-        // start at (0, 0)
+        // generate 3 rewards and 3 maluses
+        for i in 0..6 {
+            let (x, y): (usize, usize) =
+                (rng.gen_range(0, self.dim.0 / 2), rng.gen_range(0, self.dim.1 / 2));
+            self.rewards.push(Reward::new(images, [x * 2 + 1, y * 2 + 1].into(), i > 2));
+        }
+
+        self.set([self.dim.0 - 1, self.dim.1 - 2].into(), Tile::Ground);
+
+        // start at (1, 1)
         self.backtrack_gen([1, 1].into(), rng);
         self.set_textures(images);
     }
@@ -66,7 +78,12 @@ impl Maze {
         self.set(curr, Tile::Ground);
 
         if curr == [self.dim.0 - 2, self.dim.1 - 2].into() {
-            // end at (self.dim.0 - 1, self.dim.1 - 1)
+            // end at (self.dim.0 - 2, self.dim.1 - 2)
+            return;
+        }
+
+        if self.rewards.iter().any(|r| r.pos() == &curr) {
+            // end at rewards
             return;
         }
 
@@ -212,6 +229,15 @@ impl Drawable for Maze {
                 self.grass_asset.draw(ctx, param2)?;
                 self.get([x, y].into()).draw(ctx, param2)?;
             }
+        }
+        for r in &self.rewards {
+            r.draw(
+                ctx,
+                param.clone().dest([
+                    param.dest.x + r.pos().x as f32 * 32.,
+                    param.dest.y + r.pos().y as f32 * 32.,
+                ]),
+            )?;
         }
         Ok(())
     }

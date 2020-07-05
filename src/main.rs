@@ -21,6 +21,7 @@ mod assets;
 mod maze;
 mod player;
 mod tile;
+mod rewards;
 
 struct MainState<'a> {
     maze: Maze,
