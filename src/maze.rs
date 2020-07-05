@@ -30,9 +30,9 @@ pub enum Direction {
 impl Direction {
     pub fn as_relative(self) -> Vector2<isize> {
         match self {
-            Self::North => [0, 1],
+            Self::North => [0, -1],
             Self::East => [1, 0],
-            Self::South => [0, -1],
+            Self::South => [0, 1],
             Self::West => [-1, 0],
         }
         .into()
@@ -124,6 +124,8 @@ impl Maze {
             if (1..self.dim.0 - 1).contains(&index.x)
                 && (1..self.dim.1 - 1).contains(&index.y)
                 && self.get(index).is_wall()
+                && (self.get_reward(index).is_none() || dir != &Direction::South)
+            // do not go down if reward there
             {
                 self.set(between, Tile::Ground);
                 self.backtrack_gen(index, rng);
@@ -156,7 +158,7 @@ impl Maze {
 
                 let texture = match (
                     matches!(
-                        self.get_tile_rel(index, Direction::North),
+                        self.get_tile_rel(index, Direction::South),
                         Some(Tile::Wall(_))
                     ),
                     matches!(
@@ -164,7 +166,7 @@ impl Maze {
                         Some(Tile::Wall(_))
                     ),
                     matches!(
-                        self.get_tile_rel(index, Direction::South),
+                        self.get_tile_rel(index, Direction::North),
                         Some(Tile::Wall(_))
                     ),
                     matches!(
@@ -258,12 +260,10 @@ impl Drawable for Maze {
 
             r.draw(
                 ctx,
-                param
-                    .clone()
-                    .dest([
-                        param.dest.x + r.pos().x as f32 * 32. * param.scale.x,
-                        param.dest.y + (r.pos().y as f32 * 32. - 24.) * param.scale.y,
-                    ]),
+                param.clone().dest([
+                    param.dest.x + r.pos().x as f32 * 32. * param.scale.x,
+                    param.dest.y + (r.pos().y as f32 * 32. - 24.) * param.scale.y,
+                ]),
             )?;
         }
         Ok(())
