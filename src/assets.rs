@@ -19,16 +19,16 @@ impl<A> Assets<A> {
 
         for p in glob::glob(path.join("**/*").to_str().unwrap()).unwrap() {
             let pu = p.unwrap();
-            if extensions
+            if !extensions
                 .iter()
-                .all(|ext| !pu.to_str().unwrap().ends_with(*ext))
+                .any(|ext| pu.to_str().unwrap().ends_with(*ext))
             {
                 continue;
             }
             let name = pu
-                .display()
-                .to_string()
-                .replace(path.display().to_string().as_str(), "")
+                .to_str()
+                .unwrap()
+                .replace(path.to_str().unwrap(), "")
                 .replace("\\", "/");
             assets.insert(name.clone(), func(name.as_str())?);
         }

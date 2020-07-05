@@ -57,7 +57,7 @@ impl<'a> MainState<'a> {
         );
 
         let mut source =
-            Source::from_data(ctx, sounds["audio/game/audio_loop.ogg"].clone()).unwrap();
+            Source::from_data(ctx, sounds["/audio/game/audio_loop.ogg"].clone()).unwrap();
         source.set_repeat(true);
         source.play_detached()?;
 
