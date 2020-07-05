@@ -57,27 +57,49 @@ impl Maze {
     }
 
     pub fn generate<R: Rng>(&mut self, rng: &mut R, images: &Assets<Image>) {
-        // generate 3 rewards and 3 maluses
-        for i in 0..6 {
-            loop {
-                let pos: CellIndex = [
-                    rng.gen_range(0, self.dim.0 / 2) * 2 + 1,
-                    rng.gen_range(0, self.dim.1 / 2) * 2 + 1,
-                ]
-                .into();
+        loop {
+            // generate 3 rewards and 3 maluses
+            for i in 0..6 {
+                loop {
+                    let pos: CellIndex = [
+                        rng.gen_range(0, self.dim.0 / 2) * 2 + 1,
+                        rng.gen_range(0, self.dim.1 / 2) * 2 + 1,
+                    ]
+                    .into();
 
-                if pos != CellIndex::from([1, 1]) && self.get_reward(pos).is_none() {
-                    self.rewards.push(Reward::new(images, pos, i > 2));
-                    break;
+                    if pos != CellIndex::from([1, 1]) && self.get_reward(pos).is_none() {
+                        self.rewards.push(Reward::new(images, pos, i > 2));
+                        break;
+                    }
+                }
+            }
+
+            self.set([self.dim.0 - 1, self.dim.1 - 2].into(), Tile::Ground);
+
+            // start at (1, 1)
+            self.backtrack_gen([1, 1].into(), rng);
+            self.set_textures(images);
+
+            if self.is_correct() {
+                break;
+            }
+
+            self.tiles = vec![Tile::Wall(None); self.dim.0 * self.dim.1];
+            self.rewards.clear();
+        }
+    }
+
+    fn is_correct(&self) -> bool {
+        for y in (1..self.dim.1).step_by(2) {
+            for x in (1..self.dim.0).step_by(2) {
+                let pos = CellIndex::from([x, y]);
+
+                if self.get(pos).is_wall() {
+                    return false;
                 }
             }
         }
-
-        self.set([self.dim.0 - 1, self.dim.1 - 2].into(), Tile::Ground);
-
-        // start at (1, 1)
-        self.backtrack_gen([1, 1].into(), rng);
-        self.set_textures(images);
+        true
     }
 
     pub fn get_reward(&self, pos: CellIndex) -> Option<&Reward> {
