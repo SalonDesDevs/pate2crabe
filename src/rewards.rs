@@ -30,9 +30,16 @@ impl Reward {
 
 impl Drawable for Reward {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
+        const SCALE: f32 = 0.7;
+
         self.texture.draw(
             ctx,
-            param,
+            param
+                .scale([param.scale.x * SCALE, param.scale.y * SCALE])
+                .dest([
+                    param.dest.x - (32. * SCALE - 32.) * param.scale.x / 2.,
+                    param.dest.y - (32. * SCALE - 32.) * param.scale.y / 2.,
+                ]),
         )
     }
 

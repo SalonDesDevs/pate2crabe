@@ -59,9 +59,22 @@ impl Maze {
     pub fn generate<R: Rng>(&mut self, rng: &mut R, images: &Assets<Image>) {
         // generate 3 rewards and 3 maluses
         for i in 0..6 {
-            let (x, y): (usize, usize) =
-                (rng.gen_range(0, self.dim.0 / 2), rng.gen_range(0, self.dim.1 / 2));
-            self.rewards.push(Reward::new(images, [x * 2 + 1, y * 2 + 1].into(), i > 2));
+            loop {
+                let pos: CellIndex = [
+                    rng.gen_range(0, self.dim.0 / 2),
+                    rng.gen_range(0, self.dim.1 / 2),
+                ]
+                .into();
+
+                if pos != [1, 1].into() && self.get_reward(pos).is_none() {
+                    self.rewards.push(Reward::new(
+                        images,
+                        [pos.x * 2 + 1, pos.y * 2 + 1].into(),
+                        i > 2,
+                    ));
+                    break;
+                }
+            }
         }
 
         self.set([self.dim.0 - 1, self.dim.1 - 2].into(), Tile::Ground);
@@ -69,6 +82,10 @@ impl Maze {
         // start at (1, 1)
         self.backtrack_gen([1, 1].into(), rng);
         self.set_textures(images);
+    }
+
+    pub fn get_reward(&self, pos: CellIndex) -> Option<&Reward> {
+        self.rewards.iter().find(|r| r.pos() == &pos)
     }
 
     fn backtrack_gen<R: Rng>(&mut self, curr: CellIndex, rng: &mut R) {
@@ -82,7 +99,7 @@ impl Maze {
             return;
         }
 
-        if self.rewards.iter().any(|r| r.pos() == &curr) {
+        if self.get_reward(curr).is_some() {
             // end at rewards
             return;
         }
@@ -233,10 +250,12 @@ impl Drawable for Maze {
         for r in &self.rewards {
             r.draw(
                 ctx,
-                param.clone().dest([
-                    param.dest.x + r.pos().x as f32 * 32.,
-                    param.dest.y + r.pos().y as f32 * 32.,
-                ]),
+                param
+                    .clone()
+                    .dest([
+                        param.dest.x + r.pos().x as f32 * 32. * param.scale.x,
+                        param.dest.y + (r.pos().y as f32 * 32. - 24.) * param.scale.y,
+                    ]),
             )?;
         }
         Ok(())
