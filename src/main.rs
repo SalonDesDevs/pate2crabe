@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 use std::{env, path};
 
 use ggez::audio::{SoundData, SoundSource, Source};
@@ -42,19 +42,19 @@ impl<'a> MainState<'a> {
         let mut player_animations = HashMap::new();
         player_animations.insert(
             PlayerState::Idle,
-            Animation::new(images.get_from_pattern("game/idle_*.png"), 50),
+            Animation::new(images.get_from_pattern("game/idle_*.png"), Duration::from_millis(50)),
         );
         player_animations.insert(
             PlayerState::Run,
-            Animation::new(images.get_from_pattern("game/run_*.png"), 50),
+            Animation::new(images.get_from_pattern("game/run_*.png"), Duration::from_millis(50)),
         );
         player_animations.insert(
             PlayerState::Hurt,
-            Animation::new(images.get_from_pattern("game/hurt_*.png"), 50),
+            Animation::new(images.get_from_pattern("game/hurt_*.png"), Duration::from_millis(50)),
         );
         player_animations.insert(
             PlayerState::Dead,
-            Animation::new(images.get_from_pattern("game/death_*.png"), 50),
+            Animation::new(images.get_from_pattern("game/death_*.png"), Duration::from_millis(50)),
         );
 
         let mut source =
@@ -106,8 +106,9 @@ impl EventHandler for MainState<'_> {
                     reward.found = true;
 
                     if reward.malus {
-                        println!("Perdu UwU");
-                        std::process::exit(0);
+                        self.player.set_state(PlayerState::Dead);
+                        // println!("Perdu UwU");
+                        // std::process::exit(0);
                     } else {
                         self.found += 1;
                     }
@@ -115,30 +116,32 @@ impl EventHandler for MainState<'_> {
             }
         }
 
-
         if self.found == 3 && x == 10 && y == 19 {
             println!("Gagné OwO");
             std::process::exit(0);
         }
 
-        if keyboard::is_key_pressed(ctx, KeyCode::Up) {
-            if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
-                self.player.translate((0.0, -1.0));
+        if !self.player.is_dead() {
+            if keyboard::is_key_pressed(ctx, KeyCode::Up) {
+                if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
+                    self.player.translate((0.0, -1.0));
+                }
+            } else if keyboard::is_key_pressed(ctx, KeyCode::Down) {
+                if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
+                    self.player.translate((0.0, 1.0));
+                }
             }
-        } else if keyboard::is_key_pressed(ctx, KeyCode::Down) {
-            if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
-                self.player.translate((0.0, 1.0));
+            if keyboard::is_key_pressed(ctx, KeyCode::Left) {
+                if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
+                    self.player.translate((-1.0, 0.0));
+                }
+            } else if keyboard::is_key_pressed(ctx, KeyCode::Right) {
+                if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
+                    self.player.translate((1.0, 0.0));
+                }
             }
         }
-        if keyboard::is_key_pressed(ctx, KeyCode::Left) {
-            if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
-                self.player.translate((-1.0, 0.0));
-            }
-        } else if keyboard::is_key_pressed(ctx, KeyCode::Right) {
-            if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
-                self.player.translate((1.0, 0.0));
-            }
-        }
+        self.player.next_frame(ctx);
 
         Ok(())
     }
