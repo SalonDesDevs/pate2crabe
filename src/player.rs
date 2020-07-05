@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use ggez::{self, Context, GameResult};
-use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
+use ggez::graphics::{BlendMode, DrawParam, Drawable, Image, Rect};
 use ggez::nalgebra as na;
+use ggez::{self, Context, GameResult};
 
 pub struct Animation<'a> {
     frames: Vec<&'a Image>,
@@ -63,22 +63,20 @@ impl<'a> Player<'a> {
 
     pub fn translate(&mut self, vec: (f32, f32)) {
         if self.state != PlayerState::Dead {
-            self.pos = (
-                self.pos.0 + vec.0,
-                self.pos.1 + vec.1
-            );
+            self.pos = (self.pos.0 + vec.0, self.pos.1 + vec.1);
         }
     }
 }
 
 impl Drawable for Player<'_> {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
-        self.animations[&self.state].draw(ctx, param.clone().dest(
-            na::Point2::new(
+        self.animations[&self.state].draw(
+            ctx,
+            param.clone().dest(na::Point2::new(
                 param.dest.x + self.pos.0 * 32.0,
                 param.dest.y + self.pos.1 * 32.0,
-            )
-        ))
+            )),
+        )
     }
 
     fn dimensions(&self, ctx: &mut Context) -> Option<Rect> {
@@ -86,7 +84,10 @@ impl Drawable for Player<'_> {
     }
 
     fn set_blend_mode(&mut self, mode: Option<BlendMode>) {
-        self.animations.get_mut(&self.state).unwrap().set_blend_mode(mode);
+        self.animations
+            .get_mut(&self.state)
+            .unwrap()
+            .set_blend_mode(mode);
     }
 
     fn blend_mode(&self) -> Option<BlendMode> {
