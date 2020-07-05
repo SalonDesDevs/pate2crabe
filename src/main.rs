@@ -32,6 +32,7 @@ struct MainState<'a> {
     images: &'a Assets<Image>,
     sounds: &'a Assets<SoundData>,
     hidden: bool,
+    dead_since: Option<Instant>
 }
 
 impl<'a> MainState<'a> {
@@ -71,12 +72,20 @@ impl<'a> MainState<'a> {
             images,
             sounds,
             hidden: false,
+            dead_since: None
         })
     }
 }
 
 impl EventHandler for MainState<'_> {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
+        if let Some(since) = self.dead_since {
+            if (Instant::now() - since).as_millis() >= 500 {
+                println!("Perdu UwU");
+                std::process::exit(0);
+            }
+        }
+
         let diff = 10i32 - (Instant::now() - self.start).as_secs() as i32;
         if diff > 0 {
             self.info = Text::new(format!("{:02}", diff));
@@ -107,8 +116,7 @@ impl EventHandler for MainState<'_> {
 
                     if reward.malus {
                         self.player.set_state(PlayerState::Dead);
-                        // println!("Perdu UwU");
-                        // std::process::exit(0);
+                        self.dead_since = Some(Instant::now());
                     } else {
                         self.found += 1;
                     }
