@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::time::Instant;
 use std::{env, path};
 
@@ -8,12 +7,12 @@ use rand;
 use ggez::conf::{NumSamples, WindowSetup, WindowMode, FullscreenType};
 use ggez::event::{self, EventHandler};
 use ggez::graphics::{self, Text, DrawParam};
-use ggez::input::keyboard::{self, KeyCode, KeyMods};
+use ggez::input::keyboard::{self, KeyCode};
 use ggez::nalgebra as na;
 
 use ggez::{Context, ContextBuilder, GameResult};
 
-use crate::assets::{load_assets, Assets};
+use crate::assets::Assets;
 use crate::maze::Maze;
 use crate::player::{Animation, Player, PlayerState};
 
@@ -22,47 +21,35 @@ mod maze;
 mod player;
 mod tile;
 
-struct MainState {
+struct MainState<'a> {
     maze: Maze,
-    player: Player,
+    player: Player<'a>,
     info: Text,
     start: Instant,
     found: u8,
-    assets: Assets,
 }
 
-impl MainState {
-    fn new(ctx: &mut Context, path: PathBuf) -> GameResult<MainState> {
-        let assets = load_assets(ctx, &path)?;
-        let mut maze = Maze::new((21, 21), &assets);
-        maze.generate(&mut rand::thread_rng(), &assets);
+impl<'a> MainState<'a> {
+    fn new(assets: &'a Assets) -> GameResult<MainState<'a>> {
+        let mut maze = Maze::new((21, 21), assets);
+        maze.generate(&mut rand::thread_rng(), assets);
 
         let mut player_animations = HashMap::new();
         player_animations.insert(
             PlayerState::Idle,
-            Animation::new(
-                ctx,
-                &assets,
-                &[
-                    "/game/idle_1.png",
-                    "/game/idle_2.png",
-                    "/game/idle_3.png",
-                    "/game/idle_4.png",
-                ],
-                50,
-            ),
+            Animation::new(assets.get_from_pattern("game/idle_*.png"), 50),
         );
         player_animations.insert(
             PlayerState::Run,
-            Animation::new(ctx, &assets, &["/game/idle_1.png"], 50),
+            Animation::new(assets.get_from_pattern("game/run_*.png"), 50),
         );
         player_animations.insert(
             PlayerState::Hurt,
-            Animation::new(ctx, &assets, &["/game/idle_1.png"], 50),
+            Animation::new(assets.get_from_pattern("game/hurt_*.png"), 50),
         );
         player_animations.insert(
             PlayerState::Dead,
-            Animation::new(ctx, &assets, &["/game/idle_1.png"], 50),
+            Animation::new(assets.get_from_pattern("game/death_*.png"), 50),
         );
 
         Ok(MainState {
@@ -71,12 +58,11 @@ impl MainState {
             start: Instant::now(),
             found: 0,
             player: Player::new(player_animations),
-            assets,
         })
     }
 }
 
-impl EventHandler for MainState {
+impl EventHandler for MainState<'_> {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let diff = 10i32 - (Instant::now() - self.start).as_secs() as i32;
         if diff > 0 {
@@ -161,6 +147,7 @@ fn main() -> GameResult {
         })
         .add_resource_path(resource_dir)
         .build()?;
-    let state = &mut MainState::new(ctx, path)?;
+    let assets = &Assets::load(ctx, &path)?;
+    let state = &mut MainState::new(&assets)?;
     event::run(ctx, event_loop, state)
 }

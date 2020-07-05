@@ -4,25 +4,23 @@ use ggez::{self, Context, GameResult};
 use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
 use ggez::nalgebra as na;
 
-use crate::assets::Assets;
-
-pub struct Animation {
-    frames: Vec<Image>,
+pub struct Animation<'a> {
+    frames: Vec<&'a Image>,
     index: usize,
     delay: usize,
 }
 
-impl Animation {
-    pub fn new(_ctx: &mut Context, assets: &Assets, sprite_paths: &[&str], delay: usize) -> Animation {
+impl<'a> Animation<'a> {
+    pub fn new(frames: Vec<&'a Image>, delay: usize) -> Animation<'a> {
         Animation {
-            frames: sprite_paths.iter().map(|p| assets[*p].clone()).collect(),
+            frames,
             index: 0,
             delay,
         }
     }
 }
 
-impl Drawable for Animation {
+impl Drawable for Animation<'_> {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         self.frames[self.index].draw(ctx, param)
     }
@@ -31,8 +29,8 @@ impl Drawable for Animation {
         Some(self.frames[self.index].dimensions())
     }
 
-    fn set_blend_mode(&mut self, mode: Option<BlendMode>) {
-        self.frames[self.index].set_blend_mode(mode);
+    fn set_blend_mode(&mut self, _mode: Option<BlendMode>) {
+        unimplemented!()
     }
 
     fn blend_mode(&self) -> Option<BlendMode> {
@@ -48,13 +46,13 @@ pub enum PlayerState {
     Dead,
 }
 
-pub struct Player {
+pub struct Player<'a> {
     pub pos: (f32, f32),
-    animations: HashMap<PlayerState, Animation>,
+    animations: HashMap<PlayerState, Animation<'a>>,
     state: PlayerState,
 }
 
-impl Player {
+impl<'a> Player<'a> {
     pub fn new(animations: HashMap<PlayerState, Animation>) -> Player {
         Player {
             pos: (1.0, 1.0), // start
@@ -73,7 +71,7 @@ impl Player {
     }
 }
 
-impl Drawable for Player {
+impl Drawable for Player<'_> {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         self.animations[&self.state].draw(ctx, param.clone().dest(
             na::Point2::new(
