@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use std::{env, path};
 
 use ggez::audio::{SoundData, SoundSource, Source};
@@ -20,8 +20,8 @@ use crate::player::{Animation, Player, PlayerState};
 mod assets;
 mod maze;
 mod player;
-mod tile;
 mod rewards;
+mod tile;
 
 struct MainState<'a> {
     maze: Maze,
@@ -32,30 +32,46 @@ struct MainState<'a> {
     images: &'a Assets<Image>,
     sounds: &'a Assets<SoundData>,
     hidden: bool,
-    dead_since: Option<Instant>
+    dead_since: Option<Instant>,
 }
 
 impl<'a> MainState<'a> {
-    fn new(ctx: &mut Context, images: &'a Assets<Image>, sounds: &'a Assets<SoundData>) -> GameResult<MainState<'a>> {
+    fn new(
+        ctx: &mut Context,
+        images: &'a Assets<Image>,
+        sounds: &'a Assets<SoundData>,
+    ) -> GameResult<MainState<'a>> {
         let mut maze = Maze::new((21, 21), images);
         maze.generate(&mut rand::thread_rng(), &images);
 
         let mut player_animations = HashMap::new();
         player_animations.insert(
             PlayerState::Idle,
-            Animation::new(images.get_from_pattern("game/idle_*.png"), Duration::from_millis(50)),
+            Animation::new(
+                images.get_from_pattern("game/idle_*.png"),
+                Duration::from_millis(50),
+            ),
         );
         player_animations.insert(
             PlayerState::Run,
-            Animation::new(images.get_from_pattern("game/run_*.png"), Duration::from_millis(50)),
+            Animation::new(
+                images.get_from_pattern("game/run_*.png"),
+                Duration::from_millis(50),
+            ),
         );
         player_animations.insert(
             PlayerState::Hurt,
-            Animation::new(images.get_from_pattern("game/hurt_*.png"), Duration::from_millis(50)),
+            Animation::new(
+                images.get_from_pattern("game/hurt_*.png"),
+                Duration::from_millis(50),
+            ),
         );
         player_animations.insert(
             PlayerState::Dead,
-            Animation::new(images.get_from_pattern("game/death_*.png"), Duration::from_millis(50)),
+            Animation::new(
+                images.get_from_pattern("game/death_*.png"),
+                Duration::from_millis(50),
+            ),
         );
 
         let mut source =
@@ -72,7 +88,7 @@ impl<'a> MainState<'a> {
             images,
             sounds,
             hidden: false,
-            dead_since: None
+            dead_since: None,
         })
     }
 }
@@ -148,7 +164,7 @@ impl EventHandler for MainState<'_> {
                 }
             }
         }
-        self.player.next_frame(ctx);
+        self.player.update(ctx);
 
         Ok(())
     }
