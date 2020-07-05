@@ -32,7 +32,8 @@ struct MainState<'a> {
     images: &'a Assets<Image>,
     sounds: &'a Assets<SoundData>,
     hidden: bool,
-    dead_since: Option<Instant>
+    dead_since: Option<Instant>,
+    death_sound: Source
 }
 
 impl<'a> MainState<'a> {
@@ -72,7 +73,8 @@ impl<'a> MainState<'a> {
             images,
             sounds,
             hidden: false,
-            dead_since: None
+            dead_since: None,
+            death_sound: Source::from_data(ctx, sounds["/audio/game/death.ogg"].clone()).unwrap()
         })
     }
 }
@@ -80,7 +82,7 @@ impl<'a> MainState<'a> {
 impl EventHandler for MainState<'_> {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         if let Some(since) = self.dead_since {
-            if (Instant::now() - since).as_millis() >= 500 {
+            if (Instant::now() - since).as_millis() >= 650 {
                 println!("Perdu UwU");
                 std::process::exit(0);
             }
@@ -115,6 +117,9 @@ impl EventHandler for MainState<'_> {
                     reward.found = true;
 
                     if reward.malus {
+                        self.death_sound.set_volume(2.0);
+                        self.death_sound.play_detached()?;
+
                         self.player.set_state(PlayerState::Dead);
                         self.dead_since = Some(Instant::now());
                     } else {
