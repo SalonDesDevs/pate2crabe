@@ -5,6 +5,7 @@ use ggez::{self, Context, GameResult};
 use ggez::audio::{SoundSource, Source};
 use ggez::graphics::{BlendMode, Drawable, DrawParam, Image, Rect};
 use ggez::nalgebra as na;
+use ggez::nalgebra::{Vector2, Point2};
 use ggez::timer;
 
 pub struct Animation<'a> {
@@ -62,6 +63,7 @@ pub struct Player<'a> {
     current_translation: Option<(f32, f32, f32, f32)>,
     step_count: usize,
     running_sound: Source,
+    flipped: bool,
 }
 
 impl<'a> Player<'a> {
@@ -76,6 +78,7 @@ impl<'a> Player<'a> {
             current_translation: None,
             step_count: 0,
             running_sound,
+            flipped: false,
         }
     }
 
@@ -88,6 +91,10 @@ impl<'a> Player<'a> {
             }
             self.step_count += 1;
         }
+    }
+
+    pub fn set_flipped(&mut self, flipped: bool) {
+        self.flipped = flipped
     }
 
     pub fn is_dead(&self) -> bool {
@@ -139,10 +146,11 @@ impl<'a> Player<'a> {
 
 impl Drawable for Player<'_> {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
-        self.current_animation().draw(
+        let current_animation = self.current_animation();
+        current_animation.draw(
             ctx,
-            param.clone().dest(na::Point2::new(
-                param.dest.x + self.pos.0 * 32.0,
+            param.clone().offset(Point2::new(0.5, 0.)).scale(Vector2::new(if self.flipped { -1. } else { 1. }, 1.)).dest(na::Point2::new(
+                param.dest.x + self.pos.0 * 32.0 + 16.,
                 param.dest.y + self.pos.1 * 32.0,
             )),
         )

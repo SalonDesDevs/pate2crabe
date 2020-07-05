@@ -160,10 +160,12 @@ impl EventHandler for MainState<'_> {
                     self.player.translate((0.0, 1.0));
                 }
             } else if keyboard::is_key_pressed(ctx, KeyCode::Left) {
+                self.player.set_flipped(true);
                 if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
                     self.player.translate((-1.0, 0.0));
                 }
             } else if keyboard::is_key_pressed(ctx, KeyCode::Right) {
+                self.player.set_flipped(false);
                 if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
                     self.player.translate((1.0, 0.0));
                 }
