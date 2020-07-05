@@ -74,6 +74,9 @@ impl<'a> Player<'a> {
             self.pos = (self.pos.0 + vec.0, self.pos.1 + vec.1);
         }
     }
+    pub fn is_dead(&self) -> bool {
+        self.state == PlayerState::Dead
+    }
 
     fn current_animation(&self) -> &Animation {
         &self.animations[&self.state]

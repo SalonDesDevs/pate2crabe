@@ -106,8 +106,9 @@ impl EventHandler for MainState<'_> {
                     reward.found = true;
 
                     if reward.malus {
-                        println!("Perdu UwU");
-                        std::process::exit(0);
+                        self.player.set_state(PlayerState::Dead);
+                        // println!("Perdu UwU");
+                        // std::process::exit(0);
                     } else {
                         self.found += 1;
                         if self.found == 3 {
@@ -119,22 +120,24 @@ impl EventHandler for MainState<'_> {
             }
         }
 
-        if keyboard::is_key_pressed(ctx, KeyCode::Up) {
-            if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
-                self.player.translate((0.0, -1.0));
+        if !self.player.is_dead() {
+            if keyboard::is_key_pressed(ctx, KeyCode::Up) {
+                if y != 0 && !self.maze.get([x, y - 1].into()).is_wall() {
+                    self.player.translate((0.0, -1.0));
+                }
+            } else if keyboard::is_key_pressed(ctx, KeyCode::Down) {
+                if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
+                    self.player.translate((0.0, 1.0));
+                }
             }
-        } else if keyboard::is_key_pressed(ctx, KeyCode::Down) {
-            if y != 20 && !self.maze.get([x, y + 1].into()).is_wall() {
-                self.player.translate((0.0, 1.0));
-            }
-        }
-        if keyboard::is_key_pressed(ctx, KeyCode::Left) {
-            if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
-                self.player.translate((-1.0, 0.0));
-            }
-        } else if keyboard::is_key_pressed(ctx, KeyCode::Right) {
-            if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
-                self.player.translate((1.0, 0.0));
+            if keyboard::is_key_pressed(ctx, KeyCode::Left) {
+                if x != 0 && !self.maze.get([x - 1, y].into()).is_wall() {
+                    self.player.translate((-1.0, 0.0));
+                }
+            } else if keyboard::is_key_pressed(ctx, KeyCode::Right) {
+                if x != 20 && !self.maze.get([x + 1, y].into()).is_wall() {
+                    self.player.translate((1.0, 0.0));
+                }
             }
         }
         self.player.next_frame(ctx);
