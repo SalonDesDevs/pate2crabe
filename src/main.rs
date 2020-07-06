@@ -271,7 +271,7 @@ fn main() -> GameResult {
         path.push("assets");
         path
     } else {
-        path::PathBuf::from("./assets")
+        env::current_dir()?.join("assets")
     };
     let path = resource_dir.clone();
 
