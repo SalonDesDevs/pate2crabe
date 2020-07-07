@@ -10,8 +10,6 @@ RUN apt update && \
     libasound2-dev
     
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-COPY . /app
 WORKDIR /app
 
 ENTRYPOINT /root/.cargo/bin/rustup install . && /root/.cargo/bin/cargo build --release --target-dir=/target
